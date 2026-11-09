@@ -82,7 +82,41 @@ if [ -z "$SDC" ]; then
 fi
 say "sdc ist einsatzbereit!"
 
-# 5. Container-Laufzeit (Docker-First, Podman nur bei Bedarf)
+# 5. Entwickler-Tools (git, age, sops, tailscale)
+info "Prüfe Entwickler-Tools (git, age, sops, tailscale) …"
+if [ "$IS_LINUX" = true ]; then
+  if ! command -v git >/dev/null 2>&1 || ! command -v age >/dev/null 2>&1; then
+    info "Installiere Basis-Tools (git, age) …"
+    if command -v apt-get >/dev/null 2>&1; then
+      sudo apt-get update -qq && sudo apt-get install -y -qq git age || true
+    elif command -v dnf >/dev/null 2>&1; then
+      sudo dnf install -y git age || true
+    elif command -v pacman >/dev/null 2>&1; then
+      sudo pacman -S --noconfirm git age || true
+    fi
+  fi
+  if ! command -v sops >/dev/null 2>&1; then
+    info "Installiere sops …"
+    SOPS_ARCH="amd64"
+    ARCH="$(uname -m)"
+    [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ] && SOPS_ARCH="arm64"
+    mkdir -p "$HOME/.local/bin"
+    curl -fsSL -o "$HOME/.local/bin/sops" "https://github.com/getsops/sops/releases/latest/download/sops-v3.13.3.linux.${SOPS_ARCH}" 2>/dev/null && chmod +x "$HOME/.local/bin/sops" || true
+  fi
+  if ! command -v tailscale >/dev/null 2>&1; then
+    info "Installiere Tailscale …"
+    curl -fsSL https://tailscale.com/install.sh | sh 2>/dev/null || true
+  fi
+elif [ "$IS_MAC" = true ] && command -v brew >/dev/null 2>&1; then
+  for pkg in git age sops tailscale; do
+    if ! command -v "$pkg" >/dev/null 2>&1; then
+      info "Installiere $pkg via brew …"
+      brew install "$pkg" || true
+    fi
+  done
+fi
+
+# 6. Container-Laufzeit (Docker-First, Podman nur bei Bedarf)
 info "Prüfe Container-Laufzeit …"
 if command -v docker >/dev/null 2>&1; then
   say "Docker CLI ist vorhanden (vollkommen ausreichend — Podman wird nicht benötigt)."
@@ -92,58 +126,88 @@ else
   if [ "$IS_LINUX" = true ]; then
     info "Weder Docker noch Podman gefunden. Installiere Docker CLI …"
     if command -v apt-get >/dev/null 2>&1; then
-      sudo apt-get update -qq && sudo apt-get install -y -qq docker.io || true
+      sudo apt-get update -qq && sudo apt-get install -y -qq docker.io || curl -fsSL https://get.docker.com | sh || true
     elif command -v dnf >/dev/null 2>&1; then
       sudo dnf install -y docker || true
     elif command -v pacman >/dev/null 2>&1; then
       sudo pacman -S --noconfirm docker || true
+    else
+      curl -fsSL https://get.docker.com | sh || true
     fi
+    sudo usermod -aG docker "$USER" 2>/dev/null || true
+    say "Docker CLI installiert."
   elif [ "$IS_MAC" = true ]; then
-    warn "Keine Container-Laufzeit gefunden. Bitte Docker Desktop oder OrbStack installieren (z. B. 'brew install --cask docker')."
+    if command -v brew >/dev/null 2>&1; then
+      info "Installiere Docker via Homebrew …"
+      brew install --cask docker || true
+    else
+      warn "Keine Container-Laufzeit gefunden. Bitte Docker Desktop installieren."
+    fi
   fi
 fi
 
-# 6. T3 Code prüfen / installieren
+# 7. T3 Code prüfen / installieren
 info "Prüfe T3 Code …"
 if command -v t3 >/dev/null 2>&1 || [ -d "/Applications/T3 Code.app" ] || [ -d "/Applications/T3 Code (Beta).app" ]; then
-  say "T3 Code ist installiert."
+  say "T3 Code ist bereits installiert."
 else
+  info "Installiere T3 Code …"
   if [ "$IS_MAC" = true ] && command -v brew >/dev/null 2>&1; then
-    info "Installiere T3 Code via brew …"
-    brew install --cask t3-code || warn "T3 Code manuell von https://t3.codes/ laden."
-  else
-    info "T3 Code kann von https://t3.codes/ heruntergeladen werden."
+    brew install --cask t3-code || true
+  elif [ "$IS_LINUX" = true ]; then
+    curl -fsSL https://t3.codes/install.sh | bash 2>/dev/null || curl -fsSL https://t3.codes/install.sh | sh 2>/dev/null || true
+  fi
+  if command -v t3 >/dev/null 2>&1 || [ -d "/Applications/T3 Code.app" ] || [ -d "/Applications/T3 Code (Beta).app" ]; then
+    say "T3 Code erfolgreich installiert."
   fi
 fi
 
-# 7. Orca prüfen / installieren
+# 8. Orca prüfen / installieren
 info "Prüfe Orca …"
 if command -v orca >/dev/null 2>&1 || [ -d "/Applications/Orca.app" ]; then
-  say "Orca ist installiert."
+  say "Orca ist bereits installiert."
 else
+  info "Installiere Orca …"
+  mkdir -p "$HOME/.local/bin"
+  ARCH="$(uname -m)"
+
   if [ "$IS_MAC" = true ]; then
-    DMG="$HOME/Downloads/orca-macos-arm64.dmg"
-    if [ -f "$DMG" ]; then
-      info "Installiere Orca aus vorhandenem Download ($DMG) …"
-      hdiutil attach "$DMG" -nobrowse -quiet || true
+    DMG_URL="https://github.com/stablyai/orca/releases/latest/download/orca-macos-arm64.dmg"
+    [ "$ARCH" != "arm64" ] && DMG_URL="https://github.com/stablyai/orca/releases/latest/download/orca-macos-x64.dmg"
+    TMP_DMG="/tmp/orca-installer.dmg"
+    if curl -fsSL -o "$TMP_DMG" "$DMG_URL"; then
+      hdiutil attach "$TMP_DMG" -nobrowse -quiet 2>/dev/null || true
       if [ -d "/Volumes/Orca/Orca.app" ]; then
         cp -R "/Volumes/Orca/Orca.app" /Applications/
         say "Orca.app nach /Applications installiert."
       fi
       hdiutil detach "/Volumes/Orca" -quiet 2>/dev/null || true
-    else
-      info "Orca kann von https://www.onorca.dev/download heruntergeladen werden."
+      rm -f "$TMP_DMG"
     fi
-  else
-    info "Orca für Linux: https://www.onorca.dev/download"
+    if [ -x "/Applications/Orca.app/Contents/Resources/bin/orca" ]; then
+      ln -sf "/Applications/Orca.app/Contents/Resources/bin/orca" "$HOME/.local/bin/orca"
+    fi
+  elif [ "$IS_LINUX" = true ]; then
+    APPIMAGE_URL="https://github.com/stablyai/orca/releases/latest/download/orca-linux.AppImage"
+    [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ] && APPIMAGE_URL="https://github.com/stablyai/orca/releases/latest/download/orca-linux-arm64.AppImage"
+
+    # 1. Option: AppImage direkt als ~/.local/bin/orca
+    if curl -fsSL -o "$HOME/.local/bin/orca" "$APPIMAGE_URL"; then
+      chmod +x "$HOME/.local/bin/orca"
+      say "Orca AppImage erfolgreich in ~/.local/bin/orca installiert."
+    fi
+  fi
+
+  if command -v orca >/dev/null 2>&1 || [ -x "$HOME/.local/bin/orca" ] || [ -d "/Applications/Orca.app" ]; then
+    say "Orca ist einsatzbereit."
   fi
 fi
 
-# 8. sdc doctor Diagnose
+# 9. sdc doctor Diagnose
 printf "\n"
 "$SDC" doctor || true
 
-# 9. Geräte-Onboarding & Orca-Verbindung
+# 10. Geräte-Onboarding & Orca-Verbindung
 printf "\n${GREEN}╭────────────────────────────────────────────────────────╮${NC}\n"
 printf "${GREEN}│${NC}  ${GREEN}[ok] Installation erfolgreich abgeschlossen!${NC}          ${GREEN}│${NC}\n"
 printf "${GREEN}│${NC}                                                         ${GREEN}│${NC}\n"

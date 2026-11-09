@@ -6,15 +6,11 @@ import os
 import platform
 import shutil
 import subprocess
-import urllib.request
 from pathlib import Path
 
 from .. import ui
 
 HELP = "Alle benötigten Entwickler-Tools, Orca und T3 Code auf diesem Gerät installieren"
-
-LINUX_ORCA_URL = "https://www.onorca.dev/download"
-LINUX_T3_URL = "https://t3.codes/"
 
 
 def register(p: argparse.ArgumentParser) -> None:
@@ -71,6 +67,77 @@ def _install_linux_package(pkg_name: str) -> bool:
     return False
 
 
+def _install_sops(system: str) -> bool:
+    if system == "mac":
+        return _install_mac_tool("sops", "sops")
+    elif system == "linux":
+        arch = platform.machine().lower()
+        sops_arch = "arm64" if "arm" in arch or "aarch" in arch else "amd64"
+        url = f"https://github.com/getsops/sops/releases/latest/download/sops-v3.13.3.linux.{sops_arch}"
+        local_bin = Path.home() / ".local" / "bin"
+        local_bin.mkdir(parents=True, exist_ok=True)
+        dest = local_bin / "sops"
+        with ui.spinner("Lade sops von GitHub herunter …"):
+            res = subprocess.run(["curl", "-fsSL", "-o", str(dest), url], capture_output=True)
+        if res.returncode == 0 and dest.exists():
+            dest.chmod(0o755)
+            ui.success(f"sops erfolgreich in {dest} installiert.")
+            return True
+    return False
+
+
+def _install_t3(system: str) -> bool:
+    if system == "mac":
+        return _install_mac_tool("T3 Code", "t3-code", is_cask=True)
+    elif system == "linux":
+        with ui.spinner("Installiere T3 Code via https://t3.codes/install.sh …"):
+            res = subprocess.run("curl -fsSL https://t3.codes/install.sh | bash", shell=True, capture_output=True)
+            if res.returncode == 0 or shutil.which("t3"):
+                ui.success("T3 Code erfolgreich installiert.")
+                return True
+    return False
+
+
+def _install_orca(system: str) -> bool:
+    arch = platform.machine().lower()
+    if system == "mac":
+        dmg_name = "orca-macos-arm64.dmg" if "arm" in arch or "aarch" in arch else "orca-macos-x64.dmg"
+        dmg_url = f"https://github.com/stablyai/orca/releases/latest/download/{dmg_name}"
+        tmp_dmg = Path("/tmp/orca-installer.dmg")
+        with ui.spinner("Lade Orca für macOS herunter …"):
+            res = subprocess.run(["curl", "-fsSL", "-o", str(tmp_dmg), dmg_url], capture_output=True)
+        if res.returncode == 0 and tmp_dmg.exists():
+            with ui.spinner("Installiere Orca.app nach /Applications …"):
+                subprocess.run(["hdiutil", "attach", str(tmp_dmg), "-nobrowse", "-quiet"])
+                vol = Path("/Volumes/Orca")
+                if vol.exists() and (vol / "Orca.app").exists():
+                    subprocess.run(["cp", "-R", str(vol / "Orca.app"), "/Applications/"])
+                subprocess.run(["hdiutil", "detach", "/Volumes/Orca", "-quiet"])
+                tmp_dmg.unlink(missing_ok=True)
+            cli_bin = Path("/Applications/Orca.app/Contents/Resources/bin/orca")
+            if cli_bin.exists():
+                local_bin = Path.home() / ".local" / "bin"
+                local_bin.mkdir(parents=True, exist_ok=True)
+                target = local_bin / "orca"
+                target.unlink(missing_ok=True)
+                target.symlink_to(cli_bin)
+            ui.success("Orca.app erfolgreich nach /Applications installiert.")
+            return True
+    elif system == "linux":
+        appimage_name = "orca-linux-arm64.AppImage" if "arm" in arch or "aarch" in arch else "orca-linux.AppImage"
+        appimage_url = f"https://github.com/stablyai/orca/releases/latest/download/{appimage_name}"
+        local_bin = Path.home() / ".local" / "bin"
+        local_bin.mkdir(parents=True, exist_ok=True)
+        dest = local_bin / "orca"
+        with ui.spinner("Lade Orca AppImage für Linux herunter …"):
+            res = subprocess.run(["curl", "-fsSL", "-o", str(dest), appimage_url], capture_output=True)
+        if res.returncode == 0 and dest.exists():
+            dest.chmod(0o755)
+            ui.success(f"Orca AppImage erfolgreich in {dest} installiert.")
+            return True
+    return False
+
+
 def run(args: argparse.Namespace) -> int:
     system = _detect_system()
     assume_yes = getattr(args, "yes", False)
@@ -81,7 +148,7 @@ def run(args: argparse.Namespace) -> int:
     # 1. uv (Python)
     if not _is_tool_installed("uv"):
         ui.step("1. Python-Manager uv")
-        if assume_yes or ui.confirm("uv installieren?"):
+        if assume_yes or ui.confirm("uv installieren?", default=True):
             with ui.spinner("Installiere uv von astral.sh …"):
                 res = subprocess.run("curl -LsSf https://astral.sh/uv/install.sh | sh", shell=True)
             if res.returncode == 0:
@@ -89,24 +156,31 @@ def run(args: argparse.Namespace) -> int:
     else:
         ui.success("uv ist bereits vorhanden.")
 
-    # 2. Basis-Entwickler-Tools: Git, age, sops
-    ui.step("2. Entwickler-Tools (Git, age, sops)")
+    # 2. Basis-Entwickler-Tools: Git, age, sops, tailscale
+    ui.step("2. Entwickler-Tools (Git, age, sops, tailscale)")
     if system == "mac":
-        for exe, pkg in [("git", "git"), ("age", "age"), ("sops", "sops"), ("node", "node")]:
+        for exe, pkg in [("git", "git"), ("age", "age"), ("sops", "sops"), ("tailscale", "tailscale"), ("node", "node")]:
             if not _is_tool_installed(exe):
-                if assume_yes or ui.confirm(f"{exe} via Homebrew installieren?"):
+                if assume_yes or ui.confirm(f"{exe} via Homebrew installieren?", default=True):
                     _install_mac_tool(exe, pkg)
             else:
                 ui.success(f"{exe} ist vorhanden.")
     elif system == "linux":
         for exe in ["git", "age", "nodejs"]:
             if not _is_tool_installed(exe):
-                if assume_yes or ui.confirm(f"{exe} via Paketmanager installieren?"):
+                if assume_yes or ui.confirm(f"{exe} via Paketmanager installieren?", default=True):
                     _install_linux_package(exe)
             else:
                 ui.success(f"{exe} ist vorhanden.")
         if not _is_tool_installed("sops"):
-            ui.info("sops binary kann direkt von GitHub Releases heruntergeladen werden.")
+            if assume_yes or ui.confirm("sops installieren?", default=True):
+                _install_sops(system)
+        else:
+            ui.success("sops ist vorhanden.")
+        if not _is_tool_installed("tailscale"):
+            if assume_yes or ui.confirm("Tailscale installieren?", default=True):
+                with ui.spinner("Installiere Tailscale …"):
+                    subprocess.run("curl -fsSL https://tailscale.com/install.sh | sh", shell=True)
 
     # 3. Container-Laufzeit (Docker-First!)
     ui.step("3. Container-Laufzeit")
@@ -124,8 +198,9 @@ def run(args: argparse.Namespace) -> int:
                 ui.info("Auf Linux wird Docker CLI empfohlen (Podman ist nicht zwingend notwendig).")
                 if assume_yes or ui.confirm("Docker installieren?", default=True):
                     _install_linux_package("docker.io") or _install_linux_package("docker")
+                    subprocess.run(f"sudo usermod -aG docker {os.environ.get('USER', 'root')}", shell=True)
             elif system == "mac":
-                if assume_yes or ui.confirm("Docker Desktop oder OrbStack via brew installieren?"):
+                if assume_yes or ui.confirm("Docker via brew installieren?", default=True):
                     _install_mac_tool("Docker Desktop", "docker", is_cask=True)
 
     # 4. T3 Code
@@ -134,11 +209,8 @@ def run(args: argparse.Namespace) -> int:
     if has_t3:
         ui.success("T3 Code ist bereits installiert.")
     elif not getattr(args, "skip_t3", False):
-        if system == "mac":
-            if assume_yes or ui.confirm("T3 Code via brew cask installieren?", default=True):
-                _install_mac_tool("T3 Code", "t3-code", is_cask=True)
-        else:
-            ui.info("T3 Code für Linux/Windows: https://t3.codes/ herunterladen.")
+        if assume_yes or ui.confirm("T3 Code installieren?", default=True):
+            _install_t3(system)
 
     # 5. Orca Agent & Desktop App
     ui.step("5. Orca Agenten-Plattform")
@@ -146,28 +218,11 @@ def run(args: argparse.Namespace) -> int:
     if has_orca:
         ui.success("Orca ist bereits installiert.")
     elif not getattr(args, "skip_orca", False):
-        if system == "mac":
-            dmg_cache = Path.home() / "Downloads" / "orca-macos-arm64.dmg"
-            if dmg_cache.exists():
-                ui.info(f"Lokales Orca-Installationsabbild gefunden: {dmg_cache.name}")
-                if assume_yes or ui.confirm("Orca aus Downloads installieren?", default=True):
-                    with ui.spinner("Installiere Orca.app nach /Applications …"):
-                        mount_cmd = ["hdiutil", "attach", str(dmg_cache), "-nobrowse", "-quiet"]
-                        subprocess.run(mount_cmd)
-                        # Kopieren
-                        vol = Path("/Volumes/Orca")
-                        if vol.exists() and (vol / "Orca.app").exists():
-                            subprocess.run(["cp", "-R", str(vol / "Orca.app"), "/Applications/"])
-                        subprocess.run(["hdiutil", "detach", "/Volumes/Orca", "-quiet"])
-                    ui.success("Orca.app nach /Applications installiert.")
-            else:
-                ui.info("Orca kann von https://www.onorca.dev/download heruntergeladen werden.")
-        else:
-            ui.info("Orca für Linux/Windows: https://www.onorca.dev/download")
+        if assume_yes or ui.confirm("Orca jetzt automatisch herunterladen und installieren?", default=True):
+            _install_orca(system)
 
     # 6. Rechner in Orca sichtbar machen
     ui.step("6. Rechner in Orca sichtbar machen")
-    ui.info("Möchtest du diesen Rechner jetzt so starten, dass er im Haupt-Orca gesteuert werden kann?")
     if _is_tool_installed("orca") and (assume_yes or ui.confirm("Orca Server (orca serve) jetzt starten?", default=False)):
         from . import orca_cmd
         orca_cmd.do_serve(argparse.Namespace(bind="0.0.0.0", port=6768, mobile=False))
