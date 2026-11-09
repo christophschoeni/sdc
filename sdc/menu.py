@@ -1,13 +1,12 @@
-"""Interaktives Startmenü für sdc (wenn ohne Argumente gestartet)."""
+"""Interaktives Hauptmenü für sdc (wenn ohne Argumente gestartet)."""
 from __future__ import annotations
 
 import argparse
 import socket
-from rich.text import Text
 import questionary
 
 from . import team_data, ui
-from .commands import check, device, doctor, member, new, orca_cmd, secrets, setup_cmd, team
+from .commands import check, device, doctor, info, member, new, orca_cmd, secrets, setup_cmd, team
 
 
 def _context_info() -> tuple[str | None, str | None]:
@@ -24,13 +23,13 @@ def _context_info() -> tuple[str | None, str | None]:
 def _handle_secrets_menu() -> None:
     ui.step("Secrets-Verwaltung (SOPS + age)")
     sec_choices = [
-        {"name": "📥 pull   — Secrets entschlüsseln (.env für lokale Entwicklung schreiben)", "value": "pull"},
-        {"name": "🔍 check  — Prüfen, ob alle Empfänger und Pflicht-Secrets vorliegen", "value": "check"},
-        {"name": "🔑 init   — .sops.yaml aus secrets/recipients.yml neu generieren", "value": "init"},
-        {"name": "🔄 rekey  — Alle verschlüsselten Dateien für neue Empfänger aktualisieren", "value": "rekey"},
-        {"name": "📝 edit   — Verschlüsselte Datei im Editor öffnen", "value": "edit"},
+        {"name": "pull   - Secrets entschlüsseln (.env für lokale Entwicklung schreiben)", "value": "pull"},
+        {"name": "check  - Prüfen, ob alle Empfänger und Pflicht-Secrets vorliegen", "value": "check"},
+        {"name": "init   - .sops.yaml aus secrets/recipients.yml neu generieren", "value": "init"},
+        {"name": "rekey  - Alle verschlüsselten Dateien für neue Empfänger aktualisieren", "value": "rekey"},
+        {"name": "edit   - Verschlüsselte Datei im Editor öffnen", "value": "edit"},
         questionary.Separator(),
-        {"name": "⬅️ Zurück zum Hauptmenü", "value": "back"},
+        {"name": "Zurück zum Hauptmenü", "value": "back"},
     ]
     action = ui.select("Secrets-Aktion wählen:", choices=sec_choices)
     if not action or action == "back":
@@ -50,56 +49,57 @@ def run_menu() -> int:
         ui.banner(user_info=user_info, device_info=dev_info)
 
         choices = [
-            questionary.Separator("── GERÄTE & TEAM ─────────────────────────"),
-            {"name": "💻 Notebook / Gerät hinzufügen (Age-Key, SSH, Secrets)", "value": "device_add"},
-            {"name": "👤 Mitarbeiter hinzufügen (Kürzel, Name, Rolle)", "value": "member_add"},
-            {"name": "👥 Team & Geräte anzeigen (Gesamtsicht)", "value": "team_list"},
+            questionary.Separator("── GERÄTE & TEAM ──────────────────────────────────────"),
+            {"name": "Gerät registrieren (Notebook, age-Key, SSH, Secrets)", "value": "device_add"},
+            {"name": "Mitarbeiter anlegen (Kürzel, Name, Rolle, E-Mail)", "value": "member_add"},
+            {"name": "Team- und Geräte-Übersicht anzeigen", "value": "team_list"},
 
-            questionary.Separator("── ORCA & ENTWICKLER-TOOLS ──────────────"),
-            {"name": "⚡ System-Setup (fehlende Tools, Orca, T3 Code installieren)", "value": "setup"},
-            {"name": "🌐 Orca verwalten (Status, Server starten, koppeln)", "value": "orca"},
+            questionary.Separator("── ORCA & ENTWICKLER-TOOLS ───────────────────────────"),
+            {"name": "System-Setup (fehlende Tools, Orca, T3 Code nachinstallieren)", "value": "setup"},
+            {"name": "Orca-Laufzeit (Status, Server starten, Remote-PC koppeln)", "value": "orca"},
 
-            questionary.Separator("── SECRETS & SICHERHEIT ─────────────────"),
-            {"name": "🔐 Secrets verwalten (pull, check, init, rekey)", "value": "secrets"},
+            questionary.Separator("── SECRETS & SICHERHEIT ──────────────────────────────"),
+            {"name": "Secrets verwalten (pull, check, init, rekey, edit)", "value": "secrets"},
 
-            questionary.Separator("── PROJEKTE & VORLAGE ───────────────────"),
-            {"name": "✨ Neues Projekt anlegen (sdc new)", "value": "new"},
-            {"name": "🔍 Projekt prüfen (schoeni.yaml validieren)", "value": "check"},
+            questionary.Separator("── PROJEKTE & VORLAGE ────────────────────────────────"),
+            {"name": "Neues Projekt anlegen (sdc new)", "value": "new"},
+            {"name": "Projekt prüfen (schoeni.yaml validieren)", "value": "check"},
 
-            questionary.Separator("── DIAGNOSE ─────────────────────────────"),
-            {"name": "🩺 System & Werkzeuge prüfen (sdc doctor)", "value": "doctor"},
+            questionary.Separator("── SYSTEM & DIAGNOSE ─────────────────────────────────"),
+            {"name": "System- und Umgebungs-Info (sdc info)", "value": "info"},
+            {"name": "System- und Werkzeugdiagnose (sdc doctor)", "value": "doctor"},
 
-            questionary.Separator("─────────────────────────────────────────"),
-            {"name": "🚪 Beenden", "value": "exit"},
+            questionary.Separator("──────────────────────────────────────────────────────"),
+            {"name": "Beenden", "value": "exit"},
         ]
 
-        choice = ui.select("Was möchtest du tun?", choices=choices)
+        choice = ui.select("Aktion auswählen:", choices=choices)
 
         if choice is None or choice == "exit":
-            ui.console.print("\n[dim]Auf Wiedersehen![/dim]\n")
+            ui.console.print("\n[dim]Auf Wiedersehen.[/dim]\n")
             return 0
 
         ui.console.print()
         if choice == "device_add":
-            ns = argparse.Namespace(action="add")
-            device.run(ns)
+            device.run(argparse.Namespace(action="add"))
         elif choice == "member_add":
-            ns = argparse.Namespace(action="add")
-            member.run(ns)
+            member.run(argparse.Namespace(action="add"))
         elif choice == "team_list":
             team.run(argparse.Namespace())
         elif choice == "setup":
             setup_cmd.run(argparse.Namespace(yes=False, skip_orca=False, skip_t3=False, skip_docker=False))
         elif choice == "orca":
             orca_action = ui.select("Orca-Aktion wählen:", choices=[
-                {"name": "📊 Status & verbundene Hosts prüfen", "value": "status"},
-                {"name": "🚀 Server starten (orca serve) — diesen PC für Orca freigeben", "value": "serve"},
-                {"name": "🔗 Remote-PC koppeln (via Pairing-Code)", "value": "connect"},
+                {"name": "Status & verbundene Hosts prüfen", "value": "status"},
+                {"name": "Server starten (orca serve) - diesen PC für Orca freigeben", "value": "serve"},
+                {"name": "Remote-PC koppeln (via Pairing-Code)", "value": "connect"},
             ])
             if orca_action:
                 orca_cmd.run(argparse.Namespace(action=orca_action, bind="0.0.0.0", port=6768, mobile=False, code=None))
         elif choice == "secrets":
             _handle_secrets_menu()
+        elif choice == "info":
+            info.run(argparse.Namespace(json=False))
         elif choice == "doctor":
             doctor.run(argparse.Namespace(quiet=False))
         elif choice == "new":
@@ -111,4 +111,4 @@ def run_menu() -> int:
             check.run(argparse.Namespace(path="."))
 
         ui.console.print()
-        ui.pause("Enter drücken — zurück zum Hauptmenü …")
+        ui.pause("Enter drücken - zurück zum Hauptmenü ...")

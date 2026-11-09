@@ -1,6 +1,10 @@
-"""Zentrale UI- und Styling-Bibliothek für die SCHOENI DIGITAL CLI (`sdc`)."""
+"""Zentrale UI- und Styling-Bibliothek für die SCHOENI DIGITAL CLI (`sdc`).
+
+Vollständig ohne Emojis — klares, minimalistisches Schweizer Ingenieursdesign.
+"""
 from __future__ import annotations
 
+import os
 import sys
 from contextlib import contextmanager
 from typing import Any, Generator, Sequence
@@ -16,7 +20,7 @@ from . import __version__
 # Haupt-Konsole mit UTF-8 & Farb-Unterstützung
 console = Console(highlight=False)
 
-# Questionary Theme im einheitlichen CI-Design
+# Questionary Theme im professionellen Design ohne Emojis
 QUESTIONARY_STYLE = questionary.Style([
     ("qmark", "fg:#00d2ff bold"),
     ("question", "bold fg:#f8fafc"),
@@ -30,6 +34,14 @@ QUESTIONARY_STYLE = questionary.Style([
     ("disabled", "fg:#475569 italic"),
 ])
 
+LOGO_LINES = [
+    "   ____ _____ _   _  ___  _   _ ___    ____ ___ ____ ___ _____ _   _     ",
+    "  / ___/ ____| | | |/ _ \\| \\ | |_ _|  |  _ \\_ _/ ___|_ _|_   _/ \\ | |    ",
+    "  \\___ \\ |   | |_| | | | |  \\| || |   | | | | | |  _ | |  | |/ _ \\| |    ",
+    "   ___) | |__|  _  | |_| | |\\  || |   | |_| | | |_| || |  | / ___ \\ |___ ",
+    "  |____/ \\_____| |_|\\___/|_| \\_|___|  |____/___\\____|___| |_/_/   \\_\\_____|",
+]
+
 
 def clear() -> None:
     if sys.stdout.isatty():
@@ -37,52 +49,45 @@ def clear() -> None:
 
 
 def banner(user_info: str | None = None, device_info: str | None = None) -> None:
-    """Zeigt das elegante Kopf-Banner mit aktuellen Kontext-Informationen."""
-    header = Text()
-    header.append("◆ SCHOENI DIGITAL ", style="bold cyan")
-    header.append("· ", style="dim")
-    header.append("Developer & Admin CLI ", style="bold white")
-    header.append(f"v{__version__}", style="dim cyan")
+    """Zeigt das offizielle SCHOENI DIGITAL ASCII-Logo mit aktuellen Statuszeilen."""
+    console.print()
+    width = console.width
 
-    sub_parts = []
+    if width >= 78:
+        # Volles ASCII-Art Logo
+        for line in LOGO_LINES:
+            console.print(f"[bold cyan]{line}[/bold cyan]")
+    else:
+        console.print("[bold cyan]SCHOENI DIGITAL[/bold cyan] [dim]· Developer & Admin CLI[/dim]")
+
+    console.print(f"[dim]SCHÖNI DIGITAL · Entwickler- & Administrations-Zentrale · v{__version__}[/dim]")
+
+    # Sub-Zeile mit aktuellem Kontext
+    meta_parts = []
     if user_info:
-        sub_parts.append(f"[cyan]👤 {user_info}[/cyan]")
+        meta_parts.append(f"[white]Benutzer:[/white] [cyan]{user_info}[/cyan]")
     if device_info:
-        sub_parts.append(f"[green]💻 {device_info}[/green]")
-    sub_parts.append("[dim]🔒 SOPS+age[/dim]")
+        meta_parts.append(f"[white]Gerät:[/white] [dim]{device_info}[/dim]")
+    meta_parts.append("[dim]Secrets: SOPS+age[/dim]")
 
-    content = Text.from_markup("  " + "  ·  ".join(sub_parts)) if sub_parts else Text()
-
-    grid = Table.grid(padding=(0, 1))
-    grid.add_column()
-    grid.add_row(header)
-    if sub_parts:
-        grid.add_row(content)
-
-    console.print(
-        Panel(
-            grid,
-            box=box.ROUNDED,
-            border_style="cyan",
-            padding=(0, 2),
-        )
-    )
+    console.print(" · ".join(meta_parts))
+    console.print("[dim]" + "─" * min(width, 78) + "[/dim]\n")
 
 
 def success(msg: str) -> None:
-    console.print(f"[bold green]✔[/bold green] {msg}")
+    console.print(f"[bold green]\\[ok][/bold green] {msg}")
 
 
 def info(msg: str) -> None:
-    console.print(f"[bold cyan]ℹ[/bold cyan] {msg}")
+    console.print(f"[bold cyan]\\[info][/bold cyan] {msg}")
 
 
 def warn(msg: str) -> None:
-    console.print(f"[bold yellow]▲[/bold yellow] [yellow]{msg}[/yellow]")
+    console.print(f"[bold yellow]\\[warn][/bold yellow] [yellow]{msg}[/yellow]")
 
 
 def error(msg: str) -> None:
-    console.print(f"[bold red]✖[/bold red] [red]{msg}[/red]")
+    console.print(f"[bold red]\\[fehlt][/bold red] [red]{msg}[/red]")
 
 
 def step(label: str, current: int | None = None, total: int | None = None) -> None:
@@ -153,5 +158,5 @@ def confirm(message: str, default: bool = True) -> bool:
     return bool(res)
 
 
-def pause(message: str = "Enter drücken um fortzufahren …") -> None:
+def pause(message: str = "Enter drücken um fortzufahren ...") -> None:
     questionary.press_any_key_to_continue(message=message, style=QUESTIONARY_STYLE).ask()

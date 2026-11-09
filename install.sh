@@ -14,10 +14,10 @@ RED='\033[1;31m'
 NC='\033[0m'
 DIM='\033[2m'
 
-say()  { printf "\n${GREEN}✔${NC} %s\n" "$1"; }
-info() { printf "${CYAN}ℹ${NC} %s\n" "$1"; }
-warn() { printf "${YELLOW}▲${NC} %s\n" "$1"; }
-fail() { printf "\n${RED}✖ FEHLER:${NC} %s\n" "$1" >&2; exit 1; }
+say()  { printf "\n${GREEN}[ok]${NC} %s\n" "$1"; }
+info() { printf "${CYAN}[info]${NC} %s\n" "$1"; }
+warn() { printf "${YELLOW}[warn]${NC} %s\n" "$1"; }
+fail() { printf "\n${RED}[fehler]${NC} %s\n" "$1" >&2; exit 1; }
 
 printf "\n${CYAN}╭────────────────────────────────────────────────────────╮${NC}\n"
 printf "${CYAN}│${NC}  ${GREEN}◆ SCHOENI DIGITAL${NC} · Arbeitsplatz & sdc Setup          ${CYAN}│${NC}\n"
@@ -139,7 +139,7 @@ printf "\n"
 
 # 9. Geräte-Onboarding & Orca-Verbindung
 printf "\n${GREEN}╭────────────────────────────────────────────────────────╮${NC}\n"
-printf "${GREEN}│${NC}  ${GREEN}✔ Installation erfolgreich abgeschlossen!${NC}             ${GREEN}│${NC}\n"
+printf "${GREEN}│${NC}  ${GREEN}[ok] Installation erfolgreich abgeschlossen!${NC}          ${GREEN}│${NC}\n"
 printf "${GREEN}│${NC}                                                         ${GREEN}│${NC}\n"
 printf "${GREEN}│${NC}  1. Registriere dieses Notebook mit:                    ${GREEN}│${NC}\n"
 printf "${GREEN}│${NC}     ${CYAN}sdc device add${NC}                                     ${GREEN}│${NC}\n"

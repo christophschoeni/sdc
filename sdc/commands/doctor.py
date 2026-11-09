@@ -79,52 +79,52 @@ def run(args: argparse.Namespace) -> int:
     for exe, label, required in DEV_TOOLS:
         found = shutil.which(exe)
         if found:
-            status = "[bold green]✔ OK[/bold green]"
+            status = r"[bold green]\[ok][/bold green]"
             detail = f"[dim]{found}[/dim]"
         else:
             if required:
-                status = "[bold red]✖ FEHLT[/bold red]"
+                status = r"[bold red]\[fehlt][/bold red]"
                 detail = f"[yellow]installieren (z. B. 'sdc setup')[/yellow]"
                 problems += 1
             else:
-                status = "[dim]– OPTIONAL[/dim]"
+                status = r"[dim]\[optional][/dim]"
                 detail = f"[dim]nicht installiert[/dim]"
         rows.append([status, label, detail])
 
     # 2. Container Engine (Docker CLI oder Podman)
     engine = _find_container_engine()
     if engine:
-        status = "[bold green]✔ OK[/bold green]"
+        status = r"[bold green]\[ok][/bold green]"
         rows.append([status, f"Container: {engine[0]}", f"[dim]{engine[1]}[/dim]"])
     else:
-        status = "[bold yellow]▲ FEHLT[/bold yellow]"
+        status = r"[bold yellow]\[fehlt][/bold yellow]"
         rows.append([status, "Container-Laufzeit (Docker oder Podman)", "[yellow]Docker CLI oder Podman installieren[/yellow]"])
         problems += 1
 
     # 3. Orca Agenten-Umgebung
     orca_info = _find_orca()
     if orca_info:
-        status = "[bold green]✔ OK[/bold green]"
+        status = r"[bold green]\[ok][/bold green]"
         rows.append([status, f"Orca Agent ({orca_info[0]})", f"[dim]{orca_info[1]}[/dim]"])
     else:
-        status = "[bold yellow]▲ FEHLT[/bold yellow]"
+        status = r"[bold yellow]\[fehlt][/bold yellow]"
         rows.append([status, "Orca Agent & CLI", "[yellow]installieren: 'sdc setup' oder onorca.dev[/yellow]"])
         problems += 1
 
     # 4. T3 Code
     t3_info = _find_t3_code()
     if t3_info:
-        status = "[bold green]✔ OK[/bold green]"
+        status = r"[bold green]\[ok][/bold green]"
         rows.append([status, f"T3 Code ({t3_info[0]})", f"[dim]{t3_info[1]}[/dim]"])
     else:
-        status = "[bold yellow]▲ FEHLT[/bold yellow]"
+        status = r"[bold yellow]\[fehlt][/bold yellow]"
         rows.append([status, "T3 Code", "[yellow]installieren: 'sdc setup' oder t3.codes[/yellow]"])
         problems += 1
 
     # 5. Tailscale Mesh
     ts = _tailscale_up()
     if ts is not None:
-        status = "[bold green]✔ OK[/bold green]" if ts else "[bold yellow]▲ AUS[/bold yellow]"
+        status = r"[bold green]\[ok][/bold green]" if ts else r"[bold yellow]\[warn][/bold yellow]"
         detail = "[dim]verbunden[/dim]" if ts else "[yellow]tailscale up ausführen[/yellow]"
         rows.append([status, "Tailscale Netzwerk", detail])
         if not ts:
@@ -133,7 +133,7 @@ def run(args: argparse.Namespace) -> int:
     # 6. age-Schlüssel (SOPS)
     age_key = Path.home() / ".config" / "sops" / "age" / "keys.txt"
     has_age = age_key.exists()
-    status = "[bold green]✔ OK[/bold green]" if has_age else "[bold red]✖ FEHLT[/bold red]"
+    status = r"[bold green]\[ok][/bold green]" if has_age else r"[bold red]\[fehlt][/bold red]"
     detail = f"[dim]{age_key}[/dim]" if has_age else "[yellow]mit 'sdc device add' erzeugen[/yellow]"
     rows.append([status, "age-Schlüssel (SOPS)", detail])
     if not has_age:
@@ -141,7 +141,7 @@ def run(args: argparse.Namespace) -> int:
 
     # 7. Manifest-Schema (schoeni.yaml)
     has_schema = schema_path().exists()
-    status = "[bold green]✔ OK[/bold green]" if has_schema else "[bold red]✖ FEHLT[/bold red]"
+    status = r"[bold green]\[ok][/bold green]" if has_schema else r"[bold red]\[fehlt][/bold red]"
     detail = f"[dim]{schema_path()}[/dim]" if has_schema else "[red]Schema-Datei fehlt[/red]"
     rows.append([status, "Manifest-Schema (schoeni.yaml)", detail])
     if not has_schema:

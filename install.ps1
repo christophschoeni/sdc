@@ -30,12 +30,12 @@ if (-not $uv) {
             irm https://astral.sh/uv/install.ps1 | iex
             $uv = Join-Path $HOME ".local\bin\uv.exe"
         } catch {
-            Write-Error "✖ uv liess sich nicht installieren: $_"
+            Write-Error "[fehler] uv liess sich nicht installieren: $_"
             exit 1
         }
     }
 }
-Write-Host "✔ uv ist bereit: & $uv --version" -ForegroundColor Green
+Write-Host "[ok] uv ist bereit: & $uv --version" -ForegroundColor Green
 
 # 2. PATH aktualisieren
 $localBin = Join-Path $HOME ".local\bin"
@@ -45,7 +45,7 @@ if ($env:Path -notlike "*$localBin*") {
 }
 
 # 3. sdc installieren
-Write-Host "ℹ Installiere 'sdc' via uv tool …" -ForegroundColor Cyan
+Write-Host "[info] Installiere 'sdc' via uv tool …" -ForegroundColor Cyan
 $scriptDir = $PSScriptRoot
 
 if ($scriptDir -and (Test-Path (Join-Path $scriptDir "pyproject.toml"))) {
@@ -55,7 +55,7 @@ if ($scriptDir -and (Test-Path (Join-Path $scriptDir "pyproject.toml"))) {
     try {
         & $uv tool install --force "git+$repoUrl"
     } catch {
-        Write-Host "▲ SSH fehlgeschlagen, versuche HTTPS …" -ForegroundColor Yellow
+        Write-Host "[warn] SSH fehlgeschlagen, versuche HTTPS …" -ForegroundColor Yellow
         & $uv tool install --force "git+https://git.schoeni-digital.com/schoeni-digital/cli.git"
     }
 }
@@ -69,38 +69,38 @@ if (-not $sdc) {
 }
 
 if (-not $sdc) {
-    Write-Warning "▲ 'sdc' liegt in $localBin, bitte neues PowerShell-Fenster öffnen falls der Befehl noch nicht erkannt wird."
+    Write-Warning "[warn] 'sdc' liegt in $localBin, bitte neues PowerShell-Fenster öffnen falls der Befehl noch nicht erkannt wird."
 } else {
-    Write-Host "✔ sdc erfolgreich installiert!" -ForegroundColor Green
+    Write-Host "[ok] sdc erfolgreich installiert!" -ForegroundColor Green
 }
 
 # 4. Container-Prüfung (Docker Desktop vor Podman)
-Write-Host "ℹ Prüfe Container-Laufzeit …" -ForegroundColor Cyan
+Write-Host "[info] Prüfe Container-Laufzeit …" -ForegroundColor Cyan
 $docker = Get-Command docker -ErrorAction SilentlyContinue
 $podman = Get-Command podman -ErrorAction SilentlyContinue
 
 if ($docker) {
-    Write-Host "✔ Docker CLI ist vorhanden (vollkommen ausreichend)." -ForegroundColor Green
+    Write-Host "[ok] Docker CLI ist vorhanden (vollkommen ausreichend)." -ForegroundColor Green
 } elseif ($podman) {
-    Write-Host "✔ Podman ist vorhanden." -ForegroundColor Green
+    Write-Host "[ok] Podman ist vorhanden." -ForegroundColor Green
 } else {
-    Write-Host "▲ Keine Container-Laufzeit gefunden. Docker Desktop wird empfohlen: https://www.docker.com/products/docker-desktop" -ForegroundColor Yellow
+    Write-Host "[warn] Keine Container-Laufzeit gefunden. Docker Desktop wird empfohlen: https://www.docker.com/products/docker-desktop" -ForegroundColor Yellow
 }
 
 # 5. T3 Code & Orca
-Write-Host "ℹ Prüfe T3 Code und Orca …" -ForegroundColor Cyan
+Write-Host "[info] Prüfe T3 Code und Orca …" -ForegroundColor Cyan
 $t3 = Get-Command t3 -ErrorAction SilentlyContinue
 if (-not $t3) {
-    Write-Host "ℹ T3 Code für Windows: https://t3.codes/" -ForegroundColor Cyan
+    Write-Host "[info] T3 Code für Windows: https://t3.codes/" -ForegroundColor Cyan
 } else {
-    Write-Host "✔ T3 Code ist vorhanden." -ForegroundColor Green
+    Write-Host "[ok] T3 Code ist vorhanden." -ForegroundColor Green
 }
 
 $orca = Get-Command orca -ErrorAction SilentlyContinue
 if (-not $orca) {
-    Write-Host "ℹ Orca für Windows: https://www.onorca.dev/download" -ForegroundColor Cyan
+    Write-Host "[info] Orca für Windows: https://www.onorca.dev/download" -ForegroundColor Cyan
 } else {
-    Write-Host "✔ Orca ist vorhanden." -ForegroundColor Green
+    Write-Host "[ok] Orca ist vorhanden." -ForegroundColor Green
 }
 
 # 6. Diagnose ausführen
@@ -115,7 +115,7 @@ if ($sdc) {
 
 Write-Host ""
 Write-Host "╭────────────────────────────────────────────────────────╮" -ForegroundColor Green
-Write-Host "│  ✔ Bereit! Starte sdc jetzt mit:                       │" -ForegroundColor Green
+Write-Host "│  [ok] Bereit! Starte sdc jetzt mit:                    │" -ForegroundColor Green
 Write-Host "│     sdc                                                │" -ForegroundColor Cyan
 Write-Host "│                                                        │" -ForegroundColor Green
 Write-Host "│  Notebook registrieren mit:                            │" -ForegroundColor Gray
