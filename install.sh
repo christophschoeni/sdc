@@ -211,12 +211,20 @@ printf "\n"
 printf "\n${GREEN}╭────────────────────────────────────────────────────────╮${NC}\n"
 printf "${GREEN}│${NC}  ${GREEN}[ok] Installation erfolgreich abgeschlossen!${NC}          ${GREEN}│${NC}\n"
 printf "${GREEN}│${NC}                                                         ${GREEN}│${NC}\n"
-printf "${GREEN}│${NC}  1. Registriere dieses Notebook mit:                    ${GREEN}│${NC}\n"
-printf "${GREEN}│${NC}     ${CYAN}sdc device add${NC}                                     ${GREEN}│${NC}\n"
+printf "${GREEN}│${NC}  Dieses Notebook jetzt mit dem MacBook koppeln:         ${GREEN}│${NC}\n"
+printf "${GREEN}│${NC}     ${CYAN}sdc orca init${NC}                                       ${GREEN}│${NC}\n"
+printf "${GREEN}│${NC}     (Gibt das Gerät im Tailnet frei - kein Abtippen!)   ${GREEN}│${NC}\n"
 printf "${GREEN}│${NC}                                                         ${GREEN}│${NC}\n"
-printf "${GREEN}│${NC}  2. Mache diesen PC in Orca sichtbar mit:               ${GREEN}│${NC}\n"
-printf "${GREEN}│${NC}     ${CYAN}sdc orca serve${NC}                                     ${GREEN}│${NC}\n"
-printf "${GREEN}│${NC}                                                         ${GREEN}│${NC}\n"
-printf "${GREEN}│${NC}  3. Starte das Dashboard mit:                           ${GREEN}│${NC}\n"
-printf "${GREEN}│${NC}     ${CYAN}sdc${NC}                                                ${GREEN}│${NC}\n"
+printf "${GREEN}│${NC}  Oder Dashboard öffnen mit:                             ${GREEN}│${NC}\n"
+printf "${GREEN}│${NC}     ${CYAN}sdc${NC}                                               ${GREEN}│${NC}\n"
 printf "${GREEN}╰────────────────────────────────────────────────────────╯${NC}\n\n"
+
+# Bei interaktiver Ausführung direkt sdc orca init anbieten
+if [ -t 0 ] && [ "$IS_LINUX" = true ]; then
+  printf "Möchtest du dieses Notebook jetzt direkt für dein MacBook zur Kopplung freigeben? [J/n] "
+  read -r REPLY || true
+  case "$REPLY" in
+    [nN]*) ;;
+    *) "$SDC" orca init ;;
+  esac
+fi

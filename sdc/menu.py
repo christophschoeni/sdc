@@ -48,7 +48,28 @@ def run_menu() -> int:
         user_info, dev_info = _context_info()
         ui.banner(user_info=user_info, device_info=dev_info)
 
-        choices = [
+        # Schneller Tailnet-Scan nach Geräten, die auf Kopplung warten
+        from .pairing import scan_beacons
+        detected_beacons = scan_beacons(timeout=0.4)
+
+        choices = []
+
+        if detected_beacons:
+            choices.append(questionary.Separator("── BEREIT ZUR KOPPLUNG (1-KLICK) ─────────────────────"))
+            for b in detected_beacons:
+                d_name = b.get("device_name", "unbekannt")
+                ip = b.get("discovered_ip", "–")
+                plat = b.get("platform", "linux")
+                choices.append(
+                    ui.choice_item(
+                        "koppeln",
+                        f"Neues Gerät '{d_name}' [{plat} · {ip}] sofort verbinden & berechtigen",
+                        ("pair_auto", b),
+                        pad=10,
+                    )
+                )
+
+        choices.extend([
             questionary.Separator("── GERÄTE & TEAM ──────────────────────────────────────"),
             ui.choice_item("device", "Gerät registrieren (Notebook, age-Key, SSH, Secrets)", "device_add", pad=10),
             ui.choice_item("member", "Mitarbeiter anlegen (Kürzel, Name, Rolle, E-Mail)", "member_add", pad=10),
@@ -82,7 +103,10 @@ def run_menu() -> int:
             return 0
 
         ui.console.print()
-        if choice == "device_add":
+        if isinstance(choice, tuple) and choice[0] == "pair_auto":
+            b = choice[1]
+            orca_cmd.do_connect(argparse.Namespace(code=b.get("discovered_ip"), name=b.get("device_name"), scan=False))
+        elif choice == "device_add":
             device.run(argparse.Namespace(action="add"))
         elif choice == "member_add":
             member.run(argparse.Namespace(action="add"))
