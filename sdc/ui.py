@@ -26,12 +26,15 @@ QUESTIONARY_STYLE = questionary.Style([
     ("question", "bold fg:#f8fafc"),
     ("answer", "fg:#10b981 bold"),
     ("pointer", "fg:#00d2ff bold"),
-    ("highlighted", "fg:#00d2ff bold"),
+    ("highlighted", "fg:#00e5ff bold"),
     ("selected", "fg:#10b981 bold"),
-    ("separator", "fg:#64748b"),
+    ("separator", "fg:#475569 bold"),
     ("instruction", "fg:#64748b italic"),
     ("text", "fg:#f8fafc"),
     ("disabled", "fg:#475569 italic"),
+    ("cmd", "fg:#00d2ff bold"),
+    ("dim", "fg:#64748b"),
+    ("desc", "fg:#f8fafc"),
 ])
 
 LOGO_LINES = [
@@ -160,3 +163,15 @@ def confirm(message: str, default: bool = True) -> bool:
 
 def pause(message: str = "Enter drücken um fortzufahren ...") -> None:
     questionary.press_any_key_to_continue(message=message, style=QUESTIONARY_STYLE).ask()
+
+
+def choice_item(cmd: str, desc: str, value: Any, pad: int = 10) -> questionary.Choice:
+    """Erzeugt eine formatierte Menü-Option: Variable/Befehl in Signalfarbe gefolgt vom Text."""
+    return questionary.Choice(
+        title=[
+            ("class:cmd", cmd.ljust(pad)),
+            ("class:dim", "›  "),
+            ("class:desc", desc),
+        ],
+        value=value,
+    )

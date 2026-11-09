@@ -76,23 +76,23 @@ Benutzer: Christoph Schöni (cschoeni) · Gerät: 1 Gerät(e) registriert · Sec
 
 Aktion auswählen:
  ── GERÄTE & TEAM ──────────────────────────────────────
- › Gerät registrieren (Notebook, age-Key, SSH, Secrets)
-   Mitarbeiter anlegen (Kürzel, Name, Rolle, E-Mail)
-   Team- und Geräte-Übersicht anzeigen
+ › device    ›  Gerät registrieren (Notebook, age-Key, SSH, Secrets)
+   member    ›  Mitarbeiter anlegen (Kürzel, Name, Rolle, E-Mail)
+   team      ›  Team- und Geräte-Übersicht anzeigen
  ── ORCA & ENTWICKLER-TOOLS ────────────────────────────
-   System-Setup (fehlende Tools, Orca, T3 Code nachinstallieren)
-   Orca-Laufzeit (Status, Server starten, Remote-PC koppeln)
+   setup     ›  System-Setup (fehlende Tools, Orca, T3 Code nachinstallieren)
+   orca      ›  Orca-Laufzeit (Status, Server starten, Remote-PC koppeln)
+   update    ›  CLI & Entwickler-Tools auf den neuesten Stand bringen
  ── SECRETS & SICHERHEIT ───────────────────────────────
-   Secrets verwalten (pull, check, init, rekey, edit)
+   secrets   ›  Secrets verwalten (pull, check, init, rekey, edit)
  ── PROJEKTE & VORLAGE ─────────────────────────────────
-   Neues Projekt anlegen (sdc new)
-   Projekt prüfen (schoeni.yaml validieren)
+   new       ›  Neues Projekt anlegen (sdc new)
+   check     ›  Projekt prüfen (schoeni.yaml validieren)
  ── SYSTEM & DIAGNOSE ──────────────────────────────────
-   System- und Umgebungs-Info (sdc info)
-   System- und Werkzeugdiagnose (sdc doctor)
-   CLI & Entwickler-Tools aktualisieren (sdc update)
+   info      ›  System- und Umgebungs-Info (sdc info)
+   doctor    ›  System- und Werkzeugdiagnose (sdc doctor)
  ──────────────────────────────────────────────────────
-   Beenden
+   exit      ›  Beenden
 ```
 
 ---

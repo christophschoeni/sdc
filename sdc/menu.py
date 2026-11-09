@@ -23,13 +23,13 @@ def _context_info() -> tuple[str | None, str | None]:
 def _handle_secrets_menu() -> None:
     ui.step("Secrets-Verwaltung (SOPS + age)")
     sec_choices = [
-        {"name": "pull   - Secrets entschlüsseln (.env für lokale Entwicklung schreiben)", "value": "pull"},
-        {"name": "check  - Prüfen, ob alle Empfänger und Pflicht-Secrets vorliegen", "value": "check"},
-        {"name": "init   - .sops.yaml aus secrets/recipients.yml neu generieren", "value": "init"},
-        {"name": "rekey  - Alle verschlüsselten Dateien für neue Empfänger aktualisieren", "value": "rekey"},
-        {"name": "edit   - Verschlüsselte Datei im Editor öffnen", "value": "edit"},
+        ui.choice_item("pull", "Secrets entschlüsseln (.env für lokale Entwicklung schreiben)", "pull", pad=8),
+        ui.choice_item("check", "Prüfen, ob alle Empfänger und Pflicht-Secrets vorliegen", "check", pad=8),
+        ui.choice_item("init", ".sops.yaml aus secrets/recipients.yml neu generieren", "init", pad=8),
+        ui.choice_item("rekey", "Alle verschlüsselten Dateien für neue Empfänger aktualisieren", "rekey", pad=8),
+        ui.choice_item("edit", "Verschlüsselte Datei im Editor öffnen", "edit", pad=8),
         questionary.Separator(),
-        {"name": "Zurück zum Hauptmenü", "value": "back"},
+        ui.choice_item("back", "Zurück zum Hauptmenü", "back", pad=8),
     ]
     action = ui.select("Secrets-Aktion wählen:", choices=sec_choices)
     if not action or action == "back":
@@ -50,28 +50,28 @@ def run_menu() -> int:
 
         choices = [
             questionary.Separator("── GERÄTE & TEAM ──────────────────────────────────────"),
-            {"name": "Gerät registrieren (Notebook, age-Key, SSH, Secrets)", "value": "device_add"},
-            {"name": "Mitarbeiter anlegen (Kürzel, Name, Rolle, E-Mail)", "value": "member_add"},
-            {"name": "Team- und Geräte-Übersicht anzeigen", "value": "team_list"},
+            ui.choice_item("device", "Gerät registrieren (Notebook, age-Key, SSH, Secrets)", "device_add", pad=10),
+            ui.choice_item("member", "Mitarbeiter anlegen (Kürzel, Name, Rolle, E-Mail)", "member_add", pad=10),
+            ui.choice_item("team", "Team- und Geräte-Übersicht anzeigen", "team_list", pad=10),
 
-            questionary.Separator("── ORCA & ENTWICKLER-TOOLS ───────────────────────────"),
-            {"name": "System-Setup (fehlende Tools, Orca, T3 Code nachinstallieren)", "value": "setup"},
-            {"name": "Orca-Laufzeit (Status, Server starten, Remote-PC koppeln)", "value": "orca"},
+            questionary.Separator("── ORCA & ENTWICKLER-TOOLS ────────────────────────────"),
+            ui.choice_item("setup", "System-Setup (fehlende Tools, Orca, T3 Code nachinstallieren)", "setup", pad=10),
+            ui.choice_item("orca", "Orca-Laufzeit (Status, Server starten, Remote-PC koppeln)", "orca", pad=10),
+            ui.choice_item("update", "CLI & Entwickler-Tools auf den neuesten Stand bringen", "update", pad=10),
 
-            questionary.Separator("── SECRETS & SICHERHEIT ──────────────────────────────"),
-            {"name": "Secrets verwalten (pull, check, init, rekey, edit)", "value": "secrets"},
+            questionary.Separator("── SECRETS & SICHERHEIT ───────────────────────────────"),
+            ui.choice_item("secrets", "Secrets verwalten (pull, check, init, rekey, edit)", "secrets", pad=10),
 
-            questionary.Separator("── PROJEKTE & VORLAGE ────────────────────────────────"),
-            {"name": "Neues Projekt anlegen (sdc new)", "value": "new"},
-            {"name": "Projekt prüfen (schoeni.yaml validieren)", "value": "check"},
+            questionary.Separator("── PROJEKTE & VORLAGE ─────────────────────────────────"),
+            ui.choice_item("new", "Neues Projekt anlegen (sdc new)", "new", pad=10),
+            ui.choice_item("check", "Projekt prüfen (schoeni.yaml validieren)", "check", pad=10),
 
-            questionary.Separator("── SYSTEM & DIAGNOSE ─────────────────────────────────"),
-            {"name": "System- und Umgebungs-Info (sdc info)", "value": "info"},
-            {"name": "System- und Werkzeugdiagnose (sdc doctor)", "value": "doctor"},
-            {"name": "CLI & Entwickler-Tools aktualisieren (sdc update)", "value": "update"},
+            questionary.Separator("── SYSTEM & DIAGNOSE ──────────────────────────────────"),
+            ui.choice_item("info", "System- und Umgebungs-Info (sdc info)", "info", pad=10),
+            ui.choice_item("doctor", "System- und Werkzeugdiagnose (sdc doctor)", "doctor", pad=10),
 
             questionary.Separator("──────────────────────────────────────────────────────"),
-            {"name": "Beenden", "value": "exit"},
+            ui.choice_item("exit", "Beenden", "exit", pad=10),
         ]
 
         choice = ui.select("Aktion auswählen:", choices=choices)
@@ -91,11 +91,13 @@ def run_menu() -> int:
             setup_cmd.run(argparse.Namespace(yes=False, skip_orca=False, skip_t3=False, skip_docker=False))
         elif choice == "orca":
             orca_action = ui.select("Orca-Aktion wählen:", choices=[
-                {"name": "Status & verbundene Hosts prüfen", "value": "status"},
-                {"name": "Server starten (orca serve) - diesen PC für Orca freigeben", "value": "serve"},
-                {"name": "Remote-PC koppeln (via Pairing-Code)", "value": "connect"},
+                ui.choice_item("status", "Status & verbundene Hosts prüfen", "status", pad=10),
+                ui.choice_item("serve", "Server starten (orca serve) - diesen PC für Orca freigeben", "serve", pad=10),
+                ui.choice_item("connect", "Remote-PC koppeln (via Pairing-Code)", "connect", pad=10),
+                questionary.Separator(),
+                ui.choice_item("back", "Zurück zum Hauptmenü", "back", pad=10),
             ])
-            if orca_action:
+            if orca_action and orca_action != "back":
                 orca_cmd.run(argparse.Namespace(action=orca_action, bind="0.0.0.0", port=6768, mobile=False, code=None))
         elif choice == "secrets":
             _handle_secrets_menu()
@@ -112,9 +114,11 @@ def run_menu() -> int:
             check.run(argparse.Namespace(path="."))
         elif choice == "update":
             upd_choice = ui.select("Update-Aktion wählen:", choices=[
-                {"name": "sdc CLI jetzt aktualisieren (Forgejo / lokal)", "value": "cli"},
-                {"name": "sdc CLI und Basis-Tools (uv, Homebrew) aktualisieren", "value": "all"},
-                {"name": "Nur prüfen, ob Updates vorhanden sind (--check)", "value": "check"},
+                ui.choice_item("cli", "sdc CLI jetzt aktualisieren (Forgejo / GitHub / lokal)", "cli", pad=8),
+                ui.choice_item("tools", "sdc CLI und Basis-Tools (uv, Homebrew) aktualisieren", "all", pad=8),
+                ui.choice_item("check", "Nur prüfen, ob Updates vorhanden sind (--check)", "check", pad=8),
+                questionary.Separator(),
+                ui.choice_item("back", "Zurück zum Hauptmenü", "back", pad=8),
             ])
             if upd_choice == "cli":
                 update.run(argparse.Namespace(tools=False, force=False, check=False))
