@@ -51,12 +51,16 @@ $scriptDir = $PSScriptRoot
 if ($scriptDir -and (Test-Path (Join-Path $scriptDir "pyproject.toml"))) {
     & $uv tool install --force --editable $scriptDir
 } else {
-    $repoUrl = "ssh://git@git.schoeni-digital.com:2222/schoeni-digital/cli.git"
     try {
-        & $uv tool install --force "git+$repoUrl"
+        & $uv tool install --force "git+https://github.com/christophschoeni/sdc.git"
     } catch {
-        Write-Host "[warn] SSH fehlgeschlagen, versuche HTTPS …" -ForegroundColor Yellow
-        & $uv tool install --force "git+https://git.schoeni-digital.com/schoeni-digital/cli.git"
+        $repoUrl = "ssh://git@git.schoeni-digital.com:2222/schoeni-digital/cli.git"
+        try {
+            & $uv tool install --force "git+$repoUrl"
+        } catch {
+            Write-Host "[warn] SSH fehlgeschlagen, versuche HTTPS …" -ForegroundColor Yellow
+            & $uv tool install --force "git+https://git.schoeni-digital.com/schoeni-digital/cli.git"
+        }
     }
 }
 

@@ -62,13 +62,13 @@ if [ -f "$SCRIPT_DIR/pyproject.toml" ]; then
   "$UV" tool install --force --editable "$SCRIPT_DIR" || "$UV" tool install --force "$SCRIPT_DIR"
 else
   INSTALLED=false
-  for url in "ssh://git@git.schoeni-digital.com:2222/schoeni-digital/cli.git" "ssh://git@git.sd/schoeni-digital/cli.git" "https://git.schoeni-digital.com/schoeni-digital/cli.git"; do
+  for url in "https://github.com/christophschoeni/sdc.git" "ssh://git@git.schoeni-digital.com:2222/schoeni-digital/cli.git" "ssh://git@git.sd/schoeni-digital/cli.git" "https://git.schoeni-digital.com/schoeni-digital/cli.git"; do
     if "$UV" tool install --force "git+$url" 2>/dev/null; then
       INSTALLED=true
       break
     fi
   done
-  [ "$INSTALLED" = true ] || "$UV" tool install --force "git+https://git.schoeni-digital.com/schoeni-digital/cli.git"
+  [ "$INSTALLED" = true ] || "$UV" tool install --force "git+https://github.com/christophschoeni/sdc.git"
 fi
 
 SDC="$(command -v sdc 2>/dev/null || true)"

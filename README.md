@@ -12,12 +12,12 @@ Führe den passenden Befehl auf deinem neuen Notebook oder Entwicklungsrechner a
 
 ### macOS (OSX) & Linux
 ```bash
-curl -fsSL https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/christophschoeni/sdc/main/install.sh | bash
 ```
 
 ### Windows (10 / 11 in PowerShell)
 ```powershell
-irm https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/christophschoeni/sdc/main/install.ps1 | iex
 ```
 
 > **Automatische Laufzeit:** Der Installer benötigt keine manuelle Python-Vorkonfiguration. Er nutzt Astral's Manager [`uv`](https://astral.sh/uv), richtet die isolierte Umgebung für `sdc` ein und prüft direkt alle Werkzeuge.

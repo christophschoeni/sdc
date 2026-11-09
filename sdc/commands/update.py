@@ -17,6 +17,7 @@ HELP = "sdc CLI und Entwickler-Tools auf den neuesten Stand aktualisieren"
 REPO_SSH = "git+ssh://git@git.sd/schoeni-digital/cli.git"
 REPO_SSH_PORT = "git+ssh://git@git.schoeni-digital.com:2222/schoeni-digital/cli.git"
 REPO_HTTPS = "git+https://git.schoeni-digital.com/schoeni-digital/cli.git"
+REPO_GITHUB = "git+https://github.com/christophschoeni/sdc.git"
 
 
 def register(p: argparse.ArgumentParser) -> None:
@@ -109,12 +110,13 @@ def _update_cli(force: bool = False) -> bool:
             else:
                 ui.info("sdc ist laut uv bereits auf dem neuesten Stand.")
 
-    # Neuinstallation von Forgejo erzwingen
-    ui.info("Lade neueste Version direkt von git.schoeni-digital.com ...")
-    for repo_url in (REPO_SSH, REPO_SSH_PORT, REPO_HTTPS):
+    # Neuinstallation von Forgejo / GitHub erzwingen
+    ui.info("Lade neueste Version (Forgejo / GitHub) ...")
+    for repo_url in (REPO_SSH, REPO_SSH_PORT, REPO_GITHUB, REPO_HTTPS):
         res = subprocess.run([uv, "tool", "install", "--force", repo_url], capture_output=True, text=True, timeout=45)
         if res.returncode == 0:
-            ui.success(f"sdc erfolgreich von Forgejo aktualisiert.")
+            source_label = "GitHub" if "github.com" in repo_url else "Forgejo"
+            ui.success(f"sdc erfolgreich von {source_label} aktualisiert.")
             return True
 
     ui.error("Konnte sdc nicht automatisch aktualisieren.")
