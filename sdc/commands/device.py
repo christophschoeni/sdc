@@ -97,11 +97,36 @@ def do_add(args: argparse.Namespace) -> int:
                 return 1
             members = team_data.list_members()
 
-        choices = [{"name": f"{m['name']} ({m['id']})", "value": m['id']} for m in members]
+        choices = [ui.choice_item(m["id"], f"{m['name']} ({m.get('role', 'developer')})", m["id"], pad=10) for m in members]
         if not member_id:
             member_id = ui.select("Zu welchem Mitarbeiter gehört dieses Notebook?", choices=choices)
             if not member_id:
                 return 1
+
+        # Prüfung, ob ein Gerät im Tailnet bereitsteht (z.B. via sdc orca init auf Omarchy)
+        if not age_pub:
+            from ..pairing import scan_beacons
+            with ui.spinner("Prüfe auf neue Geräte im Tailnet …"):
+                beacons = scan_beacons(timeout=0.8)
+            if beacons:
+                b_choices = [
+                    ui.choice_item(
+                        b.get("device_name", "unbekannt"),
+                        f"[{b.get('platform', 'linux')}] IP: {b.get('discovered_ip')} – Daten aus 'sdc orca init' übernehmen",
+                        b,
+                        pad=14,
+                    )
+                    for b in beacons
+                ]
+                b_choices.append(ui.choice_item("local", "Lokales Gerät / manuell erfassen", None, pad=14))
+                sel_beacon = ui.select("Geräte im Netzwerk/Tailnet gefunden:", choices=b_choices)
+                if sel_beacon:
+                    device_name = device_name or sel_beacon.get("device_name")
+                    age_pub = sel_beacon.get("age_pubkey")
+                    ssh_pub = sel_beacon.get("ssh_pubkey")
+                    dev_plat = sel_beacon.get("platform", "linux")
+                    suggested_id = f"{member_id}_{sel_beacon.get('device_name', dev_plat).lower().replace('-', '_')}"
+                    device_id = ui.text("Eindeutige Geräte-ID:", default=suggested_id)
 
         detected_name = keys.detect_device_name()
         if not device_id:

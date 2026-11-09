@@ -92,14 +92,15 @@ def run_menu() -> int:
             setup_cmd.run(argparse.Namespace(yes=False, skip_orca=False, skip_t3=False, skip_docker=False))
         elif choice == "orca":
             orca_action = ui.select("Orca-Aktion wählen:", choices=[
-                ui.choice_item("status", "Status & verbundene Hosts prüfen", "status", pad=10),
+                ui.choice_item("connect", "Remote-Notebook koppeln (automatischer Scan im Tailnet)", "connect", pad=10),
+                ui.choice_item("init", "Dieses Notebook initialisieren & zur Kopplung freigeben", "init", pad=10),
+                ui.choice_item("status", "Status, verbundene Runtimes & Umgebungen prüfen", "status", pad=10),
                 ui.choice_item("serve", "Server starten (orca serve) - diesen PC für Orca freigeben", "serve", pad=10),
-                ui.choice_item("connect", "Remote-PC koppeln (via Pairing-Code)", "connect", pad=10),
                 questionary.Separator(),
                 ui.choice_item("back", "Zurück zum Hauptmenü", "back", pad=10),
             ])
             if orca_action and orca_action != "back":
-                orca_cmd.run(argparse.Namespace(action=orca_action, bind="0.0.0.0", port=6768, mobile=False, code=None))
+                orca_cmd.run(argparse.Namespace(action=orca_action, bind="0.0.0.0", port=6768, mobile=False, code=None, name=None, scan=False))
         elif choice == "secrets":
             _handle_secrets_menu()
         elif choice == "info":
