@@ -7,7 +7,7 @@ from rich.text import Text
 import questionary
 
 from . import team_data, ui
-from .commands import check, device, doctor, member, new, secrets, team
+from .commands import check, device, doctor, member, new, orca_cmd, secrets, setup_cmd, team
 
 
 def _context_info() -> tuple[str | None, str | None]:
@@ -55,6 +55,10 @@ def run_menu() -> int:
             {"name": "👤 Mitarbeiter hinzufügen (Kürzel, Name, Rolle)", "value": "member_add"},
             {"name": "👥 Team & Geräte anzeigen (Gesamtsicht)", "value": "team_list"},
 
+            questionary.Separator("── ORCA & ENTWICKLER-TOOLS ──────────────"),
+            {"name": "⚡ System-Setup (fehlende Tools, Orca, T3 Code installieren)", "value": "setup"},
+            {"name": "🌐 Orca verwalten (Status, Server starten, koppeln)", "value": "orca"},
+
             questionary.Separator("── SECRETS & SICHERHEIT ─────────────────"),
             {"name": "🔐 Secrets verwalten (pull, check, init, rekey)", "value": "secrets"},
 
@@ -84,6 +88,16 @@ def run_menu() -> int:
             member.run(ns)
         elif choice == "team_list":
             team.run(argparse.Namespace())
+        elif choice == "setup":
+            setup_cmd.run(argparse.Namespace(yes=False, skip_orca=False, skip_t3=False, skip_docker=False))
+        elif choice == "orca":
+            orca_action = ui.select("Orca-Aktion wählen:", choices=[
+                {"name": "📊 Status & verbundene Hosts prüfen", "value": "status"},
+                {"name": "🚀 Server starten (orca serve) — diesen PC für Orca freigeben", "value": "serve"},
+                {"name": "🔗 Remote-PC koppeln (via Pairing-Code)", "value": "connect"},
+            ])
+            if orca_action:
+                orca_cmd.run(argparse.Namespace(action=orca_action, bind="0.0.0.0", port=6768, mobile=False, code=None))
         elif choice == "secrets":
             _handle_secrets_menu()
         elif choice == "doctor":

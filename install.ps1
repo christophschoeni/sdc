@@ -1,15 +1,14 @@
-# SCHOENI DIGITAL CLI (`sdc`) — Installations-Skript für Windows
+# SCHOENI DIGITAL CLI (`sdc`) — Vollständiger All-in-One Installer für Windows
 #
 # Schnelle 1-Zeiler-Installation in PowerShell:
 #   irm https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/install.ps1 | iex
-# oder lokal im Repo:
-#   .\install.ps1
-
+#
 $ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "╭────────────────────────────────────────────────────────╮" -ForegroundColor Cyan
-Write-Host "│  ◆ SCHOENI DIGITAL · sdc Installations-Assistent       │" -ForegroundColor Cyan
+Write-Host "│  ◆ SCHOENI DIGITAL · Arbeitsplatz & sdc Setup          │" -ForegroundColor Cyan
+Write-Host "│  Entwickler-Tools · Docker · Orca · T3 Code            │" -ForegroundColor Gray
 Write-Host "│  Plattform: Microsoft Windows (PowerShell)             │" -ForegroundColor Gray
 Write-Host "╰────────────────────────────────────────────────────────╯" -ForegroundColor Cyan
 Write-Host ""
@@ -36,7 +35,6 @@ if (-not $uv) {
         }
     }
 }
-
 Write-Host "✔ uv ist bereit: & $uv --version" -ForegroundColor Green
 
 # 2. PATH aktualisieren
@@ -74,11 +72,44 @@ if (-not $sdc) {
     Write-Warning "▲ 'sdc' liegt in $localBin, bitte neues PowerShell-Fenster öffnen falls der Befehl noch nicht erkannt wird."
 } else {
     Write-Host "✔ sdc erfolgreich installiert!" -ForegroundColor Green
+}
+
+# 4. Container-Prüfung (Docker Desktop vor Podman)
+Write-Host "ℹ Prüfe Container-Laufzeit …" -ForegroundColor Cyan
+$docker = Get-Command docker -ErrorAction SilentlyContinue
+$podman = Get-Command podman -ErrorAction SilentlyContinue
+
+if ($docker) {
+    Write-Host "✔ Docker CLI ist vorhanden (vollkommen ausreichend)." -ForegroundColor Green
+} elseif ($podman) {
+    Write-Host "✔ Podman ist vorhanden." -ForegroundColor Green
+} else {
+    Write-Host "▲ Keine Container-Laufzeit gefunden. Docker Desktop wird empfohlen: https://www.docker.com/products/docker-desktop" -ForegroundColor Yellow
+}
+
+# 5. T3 Code & Orca
+Write-Host "ℹ Prüfe T3 Code und Orca …" -ForegroundColor Cyan
+$t3 = Get-Command t3 -ErrorAction SilentlyContinue
+if (-not $t3) {
+    Write-Host "ℹ T3 Code für Windows: https://t3.codes/" -ForegroundColor Cyan
+} else {
+    Write-Host "✔ T3 Code ist vorhanden." -ForegroundColor Green
+}
+
+$orca = Get-Command orca -ErrorAction SilentlyContinue
+if (-not $orca) {
+    Write-Host "ℹ Orca für Windows: https://www.onorca.dev/download" -ForegroundColor Cyan
+} else {
+    Write-Host "✔ Orca ist vorhanden." -ForegroundColor Green
+}
+
+# 6. Diagnose ausführen
+if ($sdc) {
     Write-Host ""
     try {
         & $sdc doctor
     } catch {
-        # ignore doctor errors during first setup
+        # ignore error in doctor during first install
     }
 }
 
@@ -86,7 +117,11 @@ Write-Host ""
 Write-Host "╭────────────────────────────────────────────────────────╮" -ForegroundColor Green
 Write-Host "│  ✔ Bereit! Starte sdc jetzt mit:                       │" -ForegroundColor Green
 Write-Host "│     sdc                                                │" -ForegroundColor Cyan
-Write-Host "│  Oder Notebook registrieren mit:                       │" -ForegroundColor Gray
+Write-Host "│                                                        │" -ForegroundColor Green
+Write-Host "│  Notebook registrieren mit:                            │" -ForegroundColor Gray
 Write-Host "│     sdc device add                                     │" -ForegroundColor Cyan
+Write-Host "│                                                        │" -ForegroundColor Green
+Write-Host "│  Diesen PC in Orca sichtbar machen mit:                │" -ForegroundColor Gray
+Write-Host "│     sdc orca serve                                     │" -ForegroundColor Cyan
 Write-Host "╰────────────────────────────────────────────────────────╯" -ForegroundColor Green
 Write-Host ""

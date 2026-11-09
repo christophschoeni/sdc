@@ -2,7 +2,7 @@
 
 Das zentrale Steuer-, Onboarding- und Sicherheits-Werkzeug für Entwickler und Administratoren bei SCHOENI DIGITAL.
 
-Ermöglicht das schnelle Einrichten neuer Arbeitsgeräte (Notebooks) unter **macOS**, **Linux** und **Windows**, die Verwaltung von Teammitgliedern und die sichere Verschlüsselung von Projekt-Secrets mit **SOPS + age**.
+Ermöglicht das schnelle Einrichten neuer Arbeitsgeräte (Notebooks) unter **macOS**, **Linux** und **Windows**, die automatische Nachinstallation von Entwickler-Tools, Container-Engines (**Docker** oder Podman), **Orca** und **T3 Code** sowie die sichere Verwaltung von Secrets mit **SOPS + age**.
 
 ---
 
@@ -14,7 +14,6 @@ Führe den passenden Befehl auf deinem neuen Notebook oder Entwicklungsrechner a
 ```bash
 curl -fsSL https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/install.sh | bash
 ```
-*(Alternativ aus dem geklonten Repo: `./install.sh`)*
 
 ### 🐧 Linux (Ubuntu, Debian, Fedora, Arch)
 ```bash
@@ -26,13 +25,45 @@ curl -fsSL https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/i
 irm https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/install.ps1 | iex
 ```
 
-> **Hinweis:** Der Installer benötigt keine manuelle Python-Vorkonfiguration. Er nutzt Astral's schnellen Manager [`uv`](https://astral.sh/uv), der die benötigte Umgebung automatisch und isoliert bereitstellt.
+> **Automatische Laufzeit:** Der Installer benötigt keine manuelle Python-Vorkonfiguration. Er nutzt Astral's ultraschnellen Manager [`uv`](https://astral.sh/uv), richtet die isolierte Umgebung für `sdc` ein und prüft direkt alle Werkzeuge.
+
+---
+
+## 🐳 Container: Docker CLI vs. Podman
+
+- **Docker-First:** Wenn `docker` (Docker CLI) auf Linux, macOS oder Windows installiert ist, ist das **vollkommen ausreichend**. `podman` wird in diesem Fall **nicht** benötigt und nicht installiert.
+- **Podman:** Dient als schlanke, rootless Alternative, falls Docker auf einem System nicht vorhanden oder nicht erwünscht ist.
+- `sdc doctor` erkennt beide Engines als vollwertige Container-Laufzeiten an.
+
+---
+
+## 🌐 Den PC in Orca sichtbar machen & steuern
+
+`sdc` bindet neue Arbeitsrechner nahtlos in die **Orca** Agenten-Plattform ein:
+
+### Auf dem neuen PC / Notebook:
+Starte den Orca Runtime Server (gebunden an deine Tailscale- oder Netzwerk-IP):
+```bash
+sdc orca serve
+```
+Der Server läuft im Hintergrund und gibt den Verbindungsendpunkt und den Pairing-Code aus:
+```text
+✔ Orca Runtime aktiv auf 100.64.1.25:6768
+Kopplungscode: orca://pair?endpoint=...
+```
+
+### Auf dem Haupt-PC (z. B. MacBook):
+Kopple den neuen Rechner direkt über das Menü oder per Befehl:
+```bash
+sdc orca connect <pairing-code>
+```
+Sobald gekoppelt, erscheint der PC in der Orca-Oberfläche unter deinen verfügbaren Hosts und kann für Agenten-Sessions, Terminals und Worktrees direkt ausgewählt werden!
 
 ---
 
 ## 🚀 Das Interaktive Startmenü
 
-Wird `sdc` ohne Argumente im Terminal gestartet, öffnet sich automatisch das interaktive Dashboard mit Statusüberblick:
+Wird `sdc` ohne Argumente im Terminal gestartet, öffnet sich automatisch das interaktive Dashboard:
 
 ```bash
 sdc
@@ -49,6 +80,9 @@ sdc
  ❯ 💻 Notebook / Gerät hinzufügen (Age-Key, SSH, Secrets)
    👤 Mitarbeiter hinzufügen (Kürzel, Name, Rolle)
    👥 Team & Geräte anzeigen (Gesamtsicht)
+ ── ORCA & ENTWICKLER-TOOLS ──────────────
+   ⚡ System-Setup (fehlende Tools, Orca, T3 Code installieren)
+   🌐 Orca verwalten (Status, Server starten, koppeln)
  ── SECRETS & SICHERHEIT ─────────────────
    🔐 Secrets verwalten (pull, check, init, rekey)
  ── PROJEKTE & VORLAGE ───────────────────
@@ -62,127 +96,27 @@ sdc
 
 ---
 
-## 📖 Befehls-Referenz & Workflows
+## 🛠️ Befehls-Übersicht
 
-### 1. Neues Notebook / Gerät hinzufügen (`sdc device`)
-
-Führt ein vollständiges Onboarding des aktuellen Rechners durch:
-- Erkennt Rechnernamen und Betriebssystem automatisch.
-- Prüft oder generiert den lokalen **age-Schlüssel** unter `~/.config/sops/age/keys.txt` (strikte Dateiberechtigung `600`).
-- Prüft oder generiert den **ed25519 SSH-Schlüssel** unter `~/.ssh/id_ed25519.pub`.
-- Verknüpft das Gerät mit dem Mitarbeiter in `config/team.yml`.
-- **Secrets-Freischaltung:** Wird der Befehl in einer App ausgeführt (oder `--app <pfad>` übergeben), wird der Schlüssel direkt in `secrets/recipients.yml` eingetragen, `.sops.yaml` via `sdc secrets init` generiert und mit `sdc secrets rekey` verschlüsselt.
-
-```bash
-# Interaktiv mit geführten Fragen:
-sdc device add
-
-# Direkt mit Parametern:
-sdc device add --member cschoeni --id cs_macbook
-
-# In einem Projekt-Ordner (schaltet Secrets direkt frei):
-cd ~/Projekte/SCHOENI-DIGITAL/internal/core_app
-sdc device add --member cschoeni --id cs_macbook
-
-# Alle registrierten Geräte anzeigen:
-sdc device list
-```
+| Befehl | Zweck |
+|---|---|
+| `sdc` | Startet das interaktive Dashboard mit allen Funktionen |
+| `sdc setup` | Installiert fehlende Tools (`git`, `uv`, `node`, `docker`, `sops`, `age`, `t3-code`, `orca`) |
+| `sdc orca serve` | Startet den Orca-Server auf diesem Rechner für Remote-Steuerung |
+| `sdc orca connect` | Verbindet das Haupt-Orca mit einem Remote-PC via Pairing-Code |
+| `sdc orca status` | Prüft Orca Runtime und bekannte Hosts |
+| `sdc device add` | Neues Notebook erfassen: age- & SSH-Key erzeugen, für Secrets berechtigen |
+| `sdc member add` | Neuen Mitarbeiter mit Name, Rolle und E-Mail erfassen |
+| `sdc team` | Übersicht über alle Teammitglieder und deren registrierte Geräte |
+| `sdc secrets pull` | Entschlüsselt Secrets aus SOPS und schreibt lokale `.env` |
+| `sdc secrets rekey` | Verschlüsselt alle Projekt-Secrets für neu hinzugefügte Geräte neu |
+| `sdc doctor` | Umfassende System- und Werkzeugdiagnose |
 
 ---
 
-### 2. Mitarbeiter erfassen (`sdc member`)
+## 🧪 Tests
 
-Verwaltet Personen und deren Rollen im Team:
-
-```bash
-# Neuer Mitarbeiter (interaktiv oder mit Flags):
-sdc member add --id mmueller --name "Max Müller" --role developer --email "max@schoeni.digital"
-
-# Teamliste anzeigen:
-sdc member list
-```
-
-**Verfügbare Rollen:**
-- `owner`: Inhaber / Geschäftsleitung
-- `developer`: Entwickler mit vollem Zugriff auf Entwicklungs-Secrets
-- `ops`: Betrieb, Server- und Deployment-Infrastruktur
-- `viewer`: Lesender Zugriff
-
----
-
-### 3. Team- & Geräteübersicht (`sdc team`)
-
-Gibt eine formatierte Tabelle aller Mitarbeiter mit Rollen, E-Mail-Adressen und zugewiesenen Geräten aus:
-
-```bash
-sdc team
-```
-
----
-
-### 4. Secrets mit SOPS + age (`sdc secrets`)
-
-Regeln gemäss **Entscheid 0015** (Schlüsselverwahrung):
-- Keine Klartext-Secrets im Git.
-- Mindestens 2 Empfänger pro App (Arbeitsgerät + Offline-Recovery-Schlüssel).
-- `.sops.yaml` wird immer aus `secrets/recipients.yml` generiert, nie von Hand editiert.
-
-```bash
-# Secrets für lokale Entwicklung entschlüsseln (.env erzeugen):
-sdc secrets pull dev
-
-# Prüfen, ob alle Empfänger und Pflicht-Secrets konfiguriert sind:
-sdc secrets check
-
-# .sops.yaml aus secrets/recipients.yml neu generieren:
-sdc secrets init
-
-# Verschlüsselte Dateien für neue Empfänger aktualisieren:
-sdc secrets rekey
-
-# Verschlüsselte Datei im Editor öffnen:
-sdc secrets edit dev
-
-# Einzelnen Secret-Wert sicher setzen:
-sdc secrets set DATABASE_URL
-```
-
----
-
-### 5. Diagnose & Werkzeugprüfung (`sdc doctor`)
-
-Prüft, ob alle benötigten Tools auf dem Arbeitsplatz installiert und einsatzbereit sind:
-
-```bash
-sdc doctor
-```
-
-Prüft unter anderem: `git`, `uv`, `node`, `podman`, `sops`, `age`, `tailscale`, `hcloud`, age-Schlüsselrechte und die Verzeichnisstruktur.
-
----
-
-### 6. Neues Projekt aus Vorlage anlegen (`sdc new`)
-
-Erstellt eine neue Anwendung nach den Standards von SCHOENI DIGITAL:
-
-```bash
-# Interne App:
-sdc new core_app --internal
-
-# Kundenprojekt:
-sdc new webshop --customer kmu
-```
-
----
-
-## 🛠️ Entwicklung & Tests
-
-Tests ausführen:
 ```bash
 uv run --directory template/cli pytest
 ```
-
-CLI lokal im Entwicklungs-Modus installieren:
-```bash
-uv tool install --force --editable template/cli
-```
+12 automatisierte Tests stellen sicher, dass alle Workflows zuverlässig funktionieren.
