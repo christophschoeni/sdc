@@ -34,3 +34,17 @@ def test_check_command_on_template(capsys):
 def test_new_dry_run(capsys):
     assert main(["new", "probe", "--kind", "internal", "--dry-run"]) == 0
     assert "würde anlegen" in capsys.readouterr().out
+
+
+def test_info_command(capsys):
+    assert main(["info"]) == 0
+    out = capsys.readouterr().out
+    assert "SCHOENI DIGITAL" in out
+    assert "CLI-Version" in out
+
+
+def test_update_check_command(capsys):
+    rc = main(["update", "--check"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "Update-Zentrale" in out

@@ -5,12 +5,13 @@ import argparse
 import sys
 
 from . import __version__
-from .commands import check, device, doctor, info, member, new, orca_cmd, secrets, setup_cmd, team
+from .commands import check, device, doctor, info, member, new, orca_cmd, secrets, setup_cmd, team, update
 
 COMMANDS = {
     "info": info,
     "doctor": doctor,
     "setup": setup_cmd,
+    "update": update,
     "orca": orca_cmd,
     "new": new,
     "check": check,

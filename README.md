@@ -1,35 +1,30 @@
 # SCHOENI DIGITAL CLI (`sdc`)
 
-Das zentrale Steuer-, Onboarding- und Sicherheits-Werkzeug für Entwickler und Administratoren bei SCHOENI DIGITAL.
+Das zentrale Steuer-, Onboarding- und Sicherheits-Werkzeug für Entwickler und Administratoren bei **SCHÖNI DIGITAL**.
 
 Ermöglicht das schnelle Einrichten neuer Arbeitsgeräte (Notebooks) unter **macOS**, **Linux** und **Windows**, die automatische Nachinstallation von Entwickler-Tools, Container-Engines (**Docker** oder Podman), **Orca** und **T3 Code** sowie die sichere Verwaltung von Secrets mit **SOPS + age**.
 
 ---
 
-## ⚡ Schnelle 1-Zeiler-Installation
+## 1-Zeiler-Installation
 
 Führe den passenden Befehl auf deinem neuen Notebook oder Entwicklungsrechner aus:
 
-### 🍏 macOS (OSX)
+### macOS (OSX) & Linux
 ```bash
 curl -fsSL https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/install.sh | bash
 ```
 
-### 🐧 Linux (Ubuntu, Debian, Fedora, Arch)
-```bash
-curl -fsSL https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/install.sh | bash
-```
-
-### 🪟 Windows (10 / 11 in PowerShell)
+### Windows (10 / 11 in PowerShell)
 ```powershell
 irm https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/install.ps1 | iex
 ```
 
-> **Automatische Laufzeit:** Der Installer benötigt keine manuelle Python-Vorkonfiguration. Er nutzt Astral's ultraschnellen Manager [`uv`](https://astral.sh/uv), richtet die isolierte Umgebung für `sdc` ein und prüft direkt alle Werkzeuge.
+> **Automatische Laufzeit:** Der Installer benötigt keine manuelle Python-Vorkonfiguration. Er nutzt Astral's Manager [`uv`](https://astral.sh/uv), richtet die isolierte Umgebung für `sdc` ein und prüft direkt alle Werkzeuge.
 
 ---
 
-## 🐳 Container: Docker CLI vs. Podman
+## Container: Docker CLI vs. Podman
 
 - **Docker-First:** Wenn `docker` (Docker CLI) auf Linux, macOS oder Windows installiert ist, ist das **vollkommen ausreichend**. `podman` wird in diesem Fall **nicht** benötigt und nicht installiert.
 - **Podman:** Dient als schlanke, rootless Alternative, falls Docker auf einem System nicht vorhanden oder nicht erwünscht ist.
@@ -37,22 +32,22 @@ irm https://git.schoeni-digital.com/schoeni-digital/cli/raw/branch/main/install.
 
 ---
 
-## 🌐 Den PC in Orca sichtbar machen & steuern
+## Den PC in Orca sichtbar machen & steuern
 
 `sdc` bindet neue Arbeitsrechner nahtlos in die **Orca** Agenten-Plattform ein:
 
-### Auf dem neuen PC / Notebook:
+### 1. Auf dem neuen PC / Notebook:
 Starte den Orca Runtime Server (gebunden an deine Tailscale- oder Netzwerk-IP):
 ```bash
 sdc orca serve
 ```
 Der Server läuft im Hintergrund und gibt den Verbindungsendpunkt und den Pairing-Code aus:
 ```text
-✔ Orca Runtime aktiv auf 100.64.1.25:6768
-Kopplungscode: orca://pair?endpoint=...
+[ok] Orca Server aktiv auf 100.100.123.12:6768
+Kopplungscode: orca://pair?endpoint=100.100.123.12:6768&token=...
 ```
 
-### Auf dem Haupt-PC (z. B. MacBook):
+### 2. Auf dem Haupt-PC (z. B. MacBook):
 Kopple den neuen Rechner direkt über das Menü oder per Befehl:
 ```bash
 sdc orca connect <pairing-code>
@@ -61,46 +56,55 @@ Sobald gekoppelt, erscheint der PC in der Orca-Oberfläche unter deinen verfügb
 
 ---
 
-## 🚀 Das Interaktive Startmenü
+## Das Interaktive Startmenü
 
-Wird `sdc` ohne Argumente im Terminal gestartet, öffnet sich automatisch das interaktive Dashboard:
+Wird `sdc` ohne Argumente im Terminal gestartet, öffnet sich automatisch das interaktive Dashboard mit dem Firmenlogo:
 
 ```bash
 sdc
 ```
 
 ```text
-╭──────────────────────────────────────────────────────────────────────────────╮
-│  ◆ SCHOENI DIGITAL · Developer & Admin CLI v0.1.0                            │
-│    👤 Christoph Schöni (cschoeni)  ·  💻 1 Gerät(e) registriert  ·  🔒 SOPS+age
-╰──────────────────────────────────────────────────────────────────────────────╯
+   ____ _____ _   _  ___  _   _ ___    ____ ___ ____ ___ _____ _   _     
+  / ___/ ____| | | |/ _ \| \ | |_ _|  |  _ \_ _/ ___|_ _|_   _/ \ | |    
+  \___ \ |   | |_| | | | |  \| || |   | | | | | |  _ | |  | |/ _ \| |    
+   ___) | |__|  _  | |_| | |\  || |   | |_| | | |_| || |  | / ___ \ |___ 
+  |____/ \_____| |_|\___/|_| \_|___|  |____/___\____|___| |_/_/   \_\_____|
+SCHÖNI DIGITAL · Entwickler- & Administrations-Zentrale · v0.1.0
+Benutzer: Christoph Schöni (cschoeni) · Gerät: 1 Gerät(e) registriert · Secrets: SOPS+age
+──────────────────────────────────────────────────────────────────────────────
 
-? Was möchtest du tun? (Pfeiltasten, Enter zum Bestätigen)
- ── GERÄTE & TEAM ─────────────────────────
- ❯ 💻 Notebook / Gerät hinzufügen (Age-Key, SSH, Secrets)
-   👤 Mitarbeiter hinzufügen (Kürzel, Name, Rolle)
-   👥 Team & Geräte anzeigen (Gesamtsicht)
- ── ORCA & ENTWICKLER-TOOLS ──────────────
-   ⚡ System-Setup (fehlende Tools, Orca, T3 Code installieren)
-   🌐 Orca verwalten (Status, Server starten, koppeln)
- ── SECRETS & SICHERHEIT ─────────────────
-   🔐 Secrets verwalten (pull, check, init, rekey)
- ── PROJEKTE & VORLAGE ───────────────────
-   ✨ Neues Projekt anlegen (sdc new)
-   🔍 Projekt prüfen (schoeni.yaml validieren)
- ── DIAGNOSE ─────────────────────────────
-   🩺 System & Werkzeuge prüfen (sdc doctor)
- ─────────────────────────────────────────
-   🚪 Beenden
+Aktion auswählen:
+ ── GERÄTE & TEAM ──────────────────────────────────────
+ › Gerät registrieren (Notebook, age-Key, SSH, Secrets)
+   Mitarbeiter anlegen (Kürzel, Name, Rolle, E-Mail)
+   Team- und Geräte-Übersicht anzeigen
+ ── ORCA & ENTWICKLER-TOOLS ────────────────────────────
+   System-Setup (fehlende Tools, Orca, T3 Code nachinstallieren)
+   Orca-Laufzeit (Status, Server starten, Remote-PC koppeln)
+ ── SECRETS & SICHERHEIT ───────────────────────────────
+   Secrets verwalten (pull, check, init, rekey, edit)
+ ── PROJEKTE & VORLAGE ─────────────────────────────────
+   Neues Projekt anlegen (sdc new)
+   Projekt prüfen (schoeni.yaml validieren)
+ ── SYSTEM & DIAGNOSE ──────────────────────────────────
+   System- und Umgebungs-Info (sdc info)
+   System- und Werkzeugdiagnose (sdc doctor)
+   CLI & Entwickler-Tools aktualisieren (sdc update)
+ ──────────────────────────────────────────────────────
+   Beenden
 ```
 
 ---
 
-## 🛠️ Befehls-Übersicht
+## Befehls-Übersicht
 
 | Befehl | Zweck |
 |---|---|
 | `sdc` | Startet das interaktive Dashboard mit allen Funktionen |
+| `sdc info` | Vollständige System-, Organisations- und Toolübersicht |
+| `sdc update` | Aktualisiert die `sdc` CLI und Entwickler-Tools auf den neuesten Stand |
+| `sdc doctor` | Umfassende Diagnose für Werkzeuge, Container, Orca, T3 Code, Netz und Schlüssel |
 | `sdc setup` | Installiert fehlende Tools (`git`, `uv`, `node`, `docker`, `sops`, `age`, `t3-code`, `orca`) |
 | `sdc orca serve` | Startet den Orca-Server auf diesem Rechner für Remote-Steuerung |
 | `sdc orca connect` | Verbindet das Haupt-Orca mit einem Remote-PC via Pairing-Code |
@@ -110,13 +114,28 @@ sdc
 | `sdc team` | Übersicht über alle Teammitglieder und deren registrierte Geräte |
 | `sdc secrets pull` | Entschlüsselt Secrets aus SOPS und schreibt lokale `.env` |
 | `sdc secrets rekey` | Verschlüsselt alle Projekt-Secrets für neu hinzugefügte Geräte neu |
-| `sdc doctor` | Umfassende System- und Werkzeugdiagnose |
+| `sdc new <name>` | Neues SCHÖNI DIGITAL Projekt nach Vorlage erzeugen |
+| `sdc check` | Projekt-Manifest `schoeni.yaml` gegen das Schema validieren |
 
 ---
 
-## 🧪 Tests
+## CLI Aktualisieren (`sdc update`)
+
+Mit `sdc update` wird die CLI direkt aus dem zentralen Forgejo-Repository auf den neuesten Stand gebracht:
 
 ```bash
-uv run --directory template/cli pytest
+# sdc CLI aktualisieren
+sdc update
+
+# sdc CLI und Entwickler-Tools (uv, Homebrew) aktualisieren
+sdc update --tools
+
+# Nur prüfen, ob auf dem Server neuere Versionen vorliegen
+sdc update --check
 ```
-12 automatisierte Tests stellen sicher, dass alle Workflows zuverlässig funktionieren.
+
+---
+
+## Lizenz & Vertraulichkeit
+
+(c) 2026 SCHÖNI DIGITAL. Alle Rechte vorbehalten. Nur für den internen Gebrauch.

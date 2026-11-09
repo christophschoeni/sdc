@@ -6,7 +6,7 @@ import socket
 import questionary
 
 from . import team_data, ui
-from .commands import check, device, doctor, info, member, new, orca_cmd, secrets, setup_cmd, team
+from .commands import check, device, doctor, info, member, new, orca_cmd, secrets, setup_cmd, team, update
 
 
 def _context_info() -> tuple[str | None, str | None]:
@@ -68,6 +68,7 @@ def run_menu() -> int:
             questionary.Separator("── SYSTEM & DIAGNOSE ─────────────────────────────────"),
             {"name": "System- und Umgebungs-Info (sdc info)", "value": "info"},
             {"name": "System- und Werkzeugdiagnose (sdc doctor)", "value": "doctor"},
+            {"name": "CLI & Entwickler-Tools aktualisieren (sdc update)", "value": "update"},
 
             questionary.Separator("──────────────────────────────────────────────────────"),
             {"name": "Beenden", "value": "exit"},
@@ -109,6 +110,18 @@ def run_menu() -> int:
                 new.run(ns)
         elif choice == "check":
             check.run(argparse.Namespace(path="."))
+        elif choice == "update":
+            upd_choice = ui.select("Update-Aktion wählen:", choices=[
+                {"name": "sdc CLI jetzt aktualisieren (Forgejo / lokal)", "value": "cli"},
+                {"name": "sdc CLI und Basis-Tools (uv, Homebrew) aktualisieren", "value": "all"},
+                {"name": "Nur prüfen, ob Updates vorhanden sind (--check)", "value": "check"},
+            ])
+            if upd_choice == "cli":
+                update.run(argparse.Namespace(tools=False, force=False, check=False))
+            elif upd_choice == "all":
+                update.run(argparse.Namespace(tools=True, force=False, check=False))
+            elif upd_choice == "check":
+                update.run(argparse.Namespace(tools=False, force=False, check=True))
 
         ui.console.print()
         ui.pause("Enter drücken - zurück zum Hauptmenü ...")
