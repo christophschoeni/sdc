@@ -5,13 +5,14 @@ import argparse
 import sys
 
 from . import __version__
-from .commands import check, device, doctor, info, member, new, orca_cmd, secrets, setup_cmd, team, update
+from .commands import check, device, doctor, info, member, new, orca_cmd, secrets, setup_cmd, sync, team, update
 
 COMMANDS = {
     "info": info,
     "doctor": doctor,
     "setup": setup_cmd,
     "update": update,
+    "sync": sync,
     "orca": orca_cmd,
     "new": new,
     "check": check,
@@ -48,6 +49,7 @@ COMMAND_GROUPS = [
     (
         "PROJEKTE & VORLAGE",
         [
+            ("sync", "Apps synchronisieren (alle oder einzelne unter ~/Projekte/SCHOENI_DIGITAL)"),
             ("new", "Neue App aus der Vorlage anlegen (internal oder customer)"),
             ("check", "schoeni.yaml gegen das Schema prüfen"),
         ],

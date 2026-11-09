@@ -6,7 +6,7 @@ import socket
 import questionary
 
 from . import team_data, ui
-from .commands import check, device, doctor, info, member, new, orca_cmd, secrets, setup_cmd, team, update
+from .commands import check, device, doctor, info, member, new, orca_cmd, secrets, setup_cmd, sync, team, update
 
 
 def _context_info() -> tuple[str | None, str | None]:
@@ -62,11 +62,12 @@ def run_menu() -> int:
             questionary.Separator("── SECRETS & SICHERHEIT ───────────────────────────────"),
             ui.choice_item("secrets", "Secrets verwalten (pull, check, init, rekey, edit)", "secrets", pad=10),
 
-            questionary.Separator("── PROJEKTE & VORLAGE ─────────────────────────────────"),
+            questionary.Separator("── PROJEKTE & VORLAGE ──────────────────────────────────"),
+            ui.choice_item("sync", "Apps synchronisieren (alle oder einzelne klonen & pullen)", "sync", pad=10),
             ui.choice_item("new", "Neues Projekt anlegen (sdc new)", "new", pad=10),
             ui.choice_item("check", "Projekt prüfen (schoeni.yaml validieren)", "check", pad=10),
 
-            questionary.Separator("── SYSTEM & DIAGNOSE ──────────────────────────────────"),
+            questionary.Separator("── SYSTEM & DIAGNOSE ───────────────────────────────────"),
             ui.choice_item("info", "System- und Umgebungs-Info (sdc info)", "info", pad=10),
             ui.choice_item("doctor", "System- und Werkzeugdiagnose (sdc doctor)", "doctor", pad=10),
 
@@ -105,6 +106,8 @@ def run_menu() -> int:
             info.run(argparse.Namespace(json=False))
         elif choice == "doctor":
             doctor.run(argparse.Namespace(quiet=False))
+        elif choice == "sync":
+            sync.run(argparse.Namespace(app=None, all=False, status=False, clone_only=False, pull_only=False))
         elif choice == "new":
             app_name = ui.text("Name der neuen App / des Projekts:")
             if app_name:
