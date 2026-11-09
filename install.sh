@@ -56,9 +56,12 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # 4. sdc CLI installieren
 info "Installiere 'sdc' Werkzeug via uv tool …"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" >/dev/null 2>&1 && pwd || true)"
+SCRIPT_DIR=""
+if [ -n "${BASH_SOURCE:-}" ] && [ ${#BASH_SOURCE[@]} -gt 0 ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd || true)"
+fi
 
-if [ -f "$SCRIPT_DIR/pyproject.toml" ]; then
+if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/pyproject.toml" ]; then
   "$UV" tool install --force --editable "$SCRIPT_DIR" || "$UV" tool install --force "$SCRIPT_DIR"
 else
   INSTALLED=false
