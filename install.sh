@@ -61,11 +61,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd || true
 if [ -f "$SCRIPT_DIR/pyproject.toml" ]; then
   "$UV" tool install --force --editable "$SCRIPT_DIR" || "$UV" tool install --force "$SCRIPT_DIR"
 else
-  REPO_URL="ssh://git@git.schoeni-digital.com:2222/schoeni-digital/cli.git"
-  "$UV" tool install --force "git+$REPO_URL" 2>/dev/null || {
-    warn "SSH-Klonen fehlgeschlagen — lade via HTTPS …"
-    "$UV" tool install --force "git+https://git.schoeni-digital.com/schoeni-digital/cli.git"
-  }
+  INSTALLED=false
+  for url in "ssh://git@git.schoeni-digital.com:2222/schoeni-digital/cli.git" "ssh://git@git.sd/schoeni-digital/cli.git" "https://git.schoeni-digital.com/schoeni-digital/cli.git"; do
+    if "$UV" tool install --force "git+$url" 2>/dev/null; then
+      INSTALLED=true
+      break
+    fi
+  done
+  [ "$INSTALLED" = true ] || "$UV" tool install --force "git+https://git.schoeni-digital.com/schoeni-digital/cli.git"
 fi
 
 SDC="$(command -v sdc 2>/dev/null || true)"
