@@ -94,7 +94,7 @@ def run_menu() -> int:
 
             questionary.Separator("──────────────────────────────────────────────────────"),
             ui.choice_item("exit", "Beenden", "exit", pad=10),
-        ]
+        ])
 
         choice = ui.select("Aktion auswählen:", choices=choices)
 

@@ -141,13 +141,20 @@ def spinner(text: str) -> Generator[None, None, None]:
         yield
 
 
-def select(message: str, choices: list[Any], default: Any = None, instruction: str = "(Pfeiltasten, Enter zum Bestätigen)") -> Any:
+def select(
+    message: str,
+    choices: list[Any],
+    default: Any = None,
+    instruction: str = "(Pfeiltasten ↑/↓ oder j/k, Enter zum Bestätigen)",
+) -> Any:
     return questionary.select(
         message,
         choices=choices,
         default=default,
         style=QUESTIONARY_STYLE,
         instruction=instruction,
+        use_arrow_keys=True,
+        use_jk_keys=True,
     ).ask()
 
 

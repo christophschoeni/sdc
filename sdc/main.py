@@ -87,15 +87,13 @@ def main(argv: list[str] | None = None) -> int:
         print_grouped_help()
         return 0
 
-    # Ohne Unterbefehl: IMMER das interaktive Menü aufbieten
+    # Ohne Unterbefehl: Im interaktiven Terminal immer das Menü aufbieten
     if not args_list:
-        try:
-            from . import menu
-            return menu.run_menu()
-        except Exception:
-            # Fallback wenn kein TTY verfügbar ist
+        if not sys.stdin.isatty():
             print_grouped_help()
             return 0
+        from . import menu
+        return menu.run_menu()
 
     parser = argparse.ArgumentParser(
         prog="sdc",
